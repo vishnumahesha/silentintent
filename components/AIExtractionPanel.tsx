@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { EyeIcon, EyeSlashIcon, InfoIcon } from '@phosphor-icons/react';
 
 const AGENT_SEES = [
@@ -18,6 +19,25 @@ const AGENT_CANNOT_SEE = [
   'Proof circuit internals',
   'Private policy parameters',
 ];
+
+const containerVariants = {
+  animate: { transition: { staggerChildren: 0.08 } },
+};
+
+const itemVariants = {
+  initial: { opacity: 0, x: -8 },
+  animate: { opacity: 1, x: 0, transition: { duration: 0.25 } },
+};
+
+interface ActiveVendor {
+  name: string;
+  status: 'idle' | 'analyzing' | 'approved' | 'rejected';
+  chips: Array<{ label: string; flagged?: boolean }>;
+}
+
+interface AIExtractionPanelProps {
+  activeVendor?: ActiveVendor | null;
+}
 
 function TruthBadge() {
   const [visible, setVisible] = useState(false);
@@ -93,7 +113,104 @@ function TruthBadge() {
   );
 }
 
-export default function AIExtractionPanel() {
+function ExtractedFacts({ activeVendor }: { activeVendor: ActiveVendor }) {
+  const isAnalyzing = activeVendor.status === 'analyzing';
+  const isRejected = activeVendor.status === 'rejected';
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <EyeIcon size={16} weight="regular" color="var(--color-text-tertiary)" />
+        <span
+          style={{
+            fontFamily: "'IBM Plex Sans', sans-serif",
+            fontSize: '12px',
+            color: 'var(--color-text-secondary)',
+            fontWeight: 500,
+          }}
+        >
+          EXTRACTED FACTS — {activeVendor.name}
+        </span>
+        {isAnalyzing && (
+          <span
+            style={{
+              width: '6px',
+              height: '6px',
+              borderRadius: '9999px',
+              backgroundColor: 'var(--color-text-tertiary)',
+              display: 'inline-block',
+              animation: 'pulse-dot 1.2s ease-in-out infinite',
+              flexShrink: 0,
+            }}
+          />
+        )}
+      </div>
+
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={activeVendor.name}
+          variants={containerVariants}
+          initial="initial"
+          animate="animate"
+          style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}
+        >
+          {activeVendor.chips.map((chip) => {
+            const flagged = chip.flagged && isRejected;
+            return (
+              <motion.div
+                key={chip.label}
+                variants={itemVariants}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  padding: '6px 12px',
+                  backgroundColor: flagged ? 'rgba(122,61,61,0.08)' : 'rgba(17,20,24,0.6)',
+                  border: flagged
+                    ? '1px solid var(--color-reject)'
+                    : '1px solid var(--color-border)',
+                  borderRadius: '6px',
+                }}
+              >
+                {flagged && (
+                  <span
+                    style={{
+                      color: 'var(--color-reject)',
+                      fontSize: '10px',
+                      marginRight: '8px',
+                      lineHeight: 1,
+                    }}
+                  >
+                    ●
+                  </span>
+                )}
+                <span
+                  style={{
+                    fontFamily: "'IBM Plex Mono', monospace",
+                    fontSize: '12px',
+                    lineHeight: 1.6,
+                    color: flagged ? 'var(--color-reject)' : 'var(--color-text-tertiary)',
+                  }}
+                >
+                  {'{ '}
+                  <span style={{ color: flagged ? 'var(--color-reject)' : 'var(--color-text-tertiary)' }}>
+                    &quot;{chip.label}&quot;
+                  </span>
+                  {': '}
+                  <span style={{ color: flagged ? 'var(--color-reject)' : 'var(--color-text-secondary)' }}>
+                    true
+                  </span>
+                  {' }'}
+                </span>
+              </motion.div>
+            );
+          })}
+        </motion.div>
+      </AnimatePresence>
+    </div>
+  );
+}
+
+export default function AIExtractionPanel({ activeVendor }: AIExtractionPanelProps) {
   return (
     <div
       style={{
@@ -123,48 +240,52 @@ export default function AIExtractionPanel() {
       <TruthBadge />
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <EyeIcon size={16} weight="regular" color="var(--color-text-tertiary)" />
-            <span
-              style={{
-                fontFamily: "'IBM Plex Sans', sans-serif",
-                fontSize: '12px',
-                color: 'var(--color-text-secondary)',
-                fontWeight: 500,
-              }}
-            >
-              Agent Sees
-            </span>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {AGENT_SEES.map((item) => (
-              <div
-                key={item}
+        {activeVendor ? (
+          <ExtractedFacts activeVendor={activeVendor} />
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <EyeIcon size={16} weight="regular" color="var(--color-text-tertiary)" />
+              <span
                 style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  padding: '8px 12px',
-                  backgroundColor: 'rgba(61,122,92,0.06)',
-                  border: '1px solid rgba(61,122,92,0.15)',
-                  borderRadius: '8px',
+                  fontFamily: "'IBM Plex Sans', sans-serif",
+                  fontSize: '12px',
+                  color: 'var(--color-text-secondary)',
+                  fontWeight: 500,
                 }}
               >
-                <EyeIcon size={16} weight="regular" color="var(--color-text-tertiary)" />
-                <span
+                Agent Sees
+              </span>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {AGENT_SEES.map((item) => (
+                <div
+                  key={item}
                   style={{
-                    fontFamily: "'IBM Plex Sans', sans-serif",
-                    fontSize: '12px',
-                    color: 'var(--color-text-secondary)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '8px 12px',
+                    backgroundColor: 'rgba(61,122,92,0.06)',
+                    border: '1px solid rgba(61,122,92,0.15)',
+                    borderRadius: '8px',
                   }}
                 >
-                  {item}
-                </span>
-              </div>
-            ))}
+                  <EyeIcon size={16} weight="regular" color="var(--color-text-tertiary)" />
+                  <span
+                    style={{
+                      fontFamily: "'IBM Plex Sans', sans-serif",
+                      fontSize: '12px',
+                      color: 'var(--color-text-secondary)',
+                    }}
+                  >
+                    {item}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
