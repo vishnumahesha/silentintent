@@ -15,6 +15,20 @@ const VENDOR_B_COST = 225000;
 const VENDOR_A_PRICE_CENTS = 190000;
 const VENDOR_B_PRICE_CENTS = 225000;
 
+const VENDOR_A_CHIPS = [
+  { label: 'freshness_verified' },
+  { label: 'delivery_72hr' },
+  { label: 'partner_enrichment', flagged: true },
+  { label: 'category:lead_data' },
+];
+
+const VENDOR_B_CHIPS = [
+  { label: 'freshness_verified' },
+  { label: 'delivery_72hr' },
+  { label: 'customer_siloed' },
+  { label: 'category:lead_data' },
+];
+
 const VENDOR_A_PROPOSAL =
   'BrightReach Data delivers verified dental clinic lead data with full freshness verification. Each list includes name, practice details, role, contact information, and verification timestamps. \n\nBrightReach may use anonymized campaign metadata, segment performance, and buyer interaction signals for partner enrichment, audience modeling, and benchmark optimization across similar customers.';
 
@@ -71,6 +85,22 @@ export default function Page() {
     setResetKey((k) => k + 1);
     setLastDebit(null);
   }, []);
+
+  const activeVendor = (() => {
+    if (vendorA.status === 'analyzing') {
+      return { name: 'BrightReach Data', status: vendorA.status, chips: VENDOR_A_CHIPS };
+    }
+    if (vendorB.status === 'analyzing') {
+      return { name: 'CleanList Pro', status: vendorB.status, chips: VENDOR_B_CHIPS };
+    }
+    if (vendorB.proof) {
+      return { name: 'CleanList Pro', status: vendorB.status, chips: VENDOR_B_CHIPS };
+    }
+    if (vendorA.proof) {
+      return { name: 'BrightReach Data', status: vendorA.status, chips: VENDOR_A_CHIPS };
+    }
+    return null;
+  })();
 
   return (
     <div
@@ -149,12 +179,7 @@ export default function Page() {
             priceLabel="$1,900"
             proposalText={VENDOR_A_PROPOSAL}
             summaryLine="Verified dental clinic lead data, partner enrichment included"
-            chips={[
-              { label: 'freshness_verified' },
-              { label: 'delivery_72hr' },
-              { label: 'partner_enrichment', flagged: true },
-              { label: 'category:lead_data' },
-            ]}
+            chips={VENDOR_A_CHIPS}
             authorizeLabel="Attempt Spend Authorization"
             priceCents={VENDOR_A_PRICE_CENTS}
             status={vendorA.status}
@@ -170,12 +195,7 @@ export default function Page() {
             priceLabel="$2,250"
             proposalText={VENDOR_B_PROPOSAL}
             summaryLine="Verified dental clinic lead data, customer-siloed delivery"
-            chips={[
-              { label: 'freshness_verified' },
-              { label: 'delivery_72hr' },
-              { label: 'customer_siloed' },
-              { label: 'category:lead_data' },
-            ]}
+            chips={VENDOR_B_CHIPS}
             priceCents={VENDOR_B_PRICE_CENTS}
             status={vendorB.status}
             proof={vendorB.proof}
@@ -186,7 +206,7 @@ export default function Page() {
           />
         </div>
 
-        <AIExtractionPanel />
+        <AIExtractionPanel activeVendor={activeVendor} />
 
         <PublicVerifier
           log={publicLog}
