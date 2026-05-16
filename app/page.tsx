@@ -93,6 +93,35 @@ export default function Page() {
           boxSizing: 'border-box',
         }}
       >
+        <div style={{ paddingTop: '48px', paddingBottom: '32px' }}>
+          <p
+            style={{
+              fontFamily: "'Space Grotesk', sans-serif",
+              fontSize: 'var(--font-size-hero)',
+              fontWeight: 'var(--font-weight-hero)',
+              color: 'var(--color-text-primary)',
+              lineHeight: 'var(--line-height-display)',
+              letterSpacing: '-0.02em',
+              maxWidth: '880px',
+              margin: 0,
+            }}
+          >
+            Confidential spend authorization for AI agents.
+          </p>
+          <p
+            style={{
+              fontFamily: "'IBM Plex Sans', sans-serif",
+              fontSize: '13px',
+              color: 'var(--color-text-tertiary)',
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+              marginTop: '12px',
+            }}
+          >
+            Private policy in. Public authorization out.
+          </p>
+        </div>
+
         <div
           style={{
             display: 'grid',
