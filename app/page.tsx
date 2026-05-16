@@ -10,16 +10,16 @@ import AIExtractionPanel from '@/components/AIExtractionPanel';
 import PublicVerifier from '@/components/PublicVerifier';
 import DemoControls from '@/components/DemoControls';
 
-const TREASURY_START = 4820000;
-const VENDOR_B_COST = 3100;
-const VENDOR_A_PRICE_CENTS = 42;
-const VENDOR_B_PRICE_CENTS = 31;
+const TREASURY_START = 1000000;
+const VENDOR_B_COST = 225000;
+const VENDOR_A_PRICE_CENTS = 190000;
+const VENDOR_B_PRICE_CENTS = 225000;
 
 const VENDOR_A_PROPOSAL =
-  'Axiom Logistics delivers compute capacity across multi-region infrastructure with guaranteed SLA tiers. Pricing includes reserved and on-demand allocation with burst headroom. Contracts are structured as quarterly commitments with monthly reconciliation.';
+  'BrightReach Data delivers verified dental clinic lead data with full freshness verification. Each list includes name, practice details, role, contact information, and verification timestamps. \n\nBrightReach may use anonymized campaign metadata, segment performance, and buyer interaction signals for partner enrichment, audience modeling, and benchmark optimization across similar customers.';
 
 const VENDOR_B_PROPOSAL =
-  'CleanList Pro provides verified dental clinic lead data sourced from licensed commercial directories and direct provider relationships. Each dataset includes freshness verification, opt-out screening, and clear source documentation.\n\nCleanList maintains customer-specific delivery workspaces and does not combine campaign outputs across engagements. Data supplied for one engagement is not repackaged, benchmarked, enriched, or redistributed for other customers.\n\nDelivery is available within 72 hours. Each lead includes name, practice details, role, contact information, and verification timestamp.';
+  'CleanList Pro provides verified dental clinic lead data sourced from licensed commercial directories and direct provider relationships. Each dataset includes freshness verification, opt-out screening, and clear source documentation.\n\nCleanList maintains customer-specific delivery workspaces and does not combine campaign outputs across engagements. Data supplied for one engagement is not repackaged, benchmarked, enriched, or redistributed for other customers.';
 
 interface VendorState {
   status: VendorStatus;
@@ -37,7 +37,7 @@ export default function Page() {
 
   const analyzeVendor = useCallback(async (vendor: 'A' | 'B') => {
     const priceCents = vendor === 'A' ? VENDOR_A_PRICE_CENTS : VENDOR_B_PRICE_CENTS;
-    const vendorName = vendor === 'A' ? 'Axiom Logistics' : 'Meridian AI';
+    const vendorName = vendor === 'A' ? 'BrightReach Data' : 'CleanList Pro';
     const setVendor = vendor === 'A' ? setVendorA : setVendorB;
 
     setVendor({ status: 'analyzing', proof: null });
@@ -141,9 +141,9 @@ export default function Page() {
           }}
         >
           <VendorCard
-            vendorName="Axiom Logistics"
-            category="Cloud Compute"
-            priceLabel="$0.42/unit"
+            vendorName="BrightReach Data"
+            category="Lead Data"
+            priceLabel="$1,900"
             proposalText={VENDOR_A_PROPOSAL}
             authorizeLabel="Attempt Spend Authorization"
             priceCents={VENDOR_A_PRICE_CENTS}
@@ -154,9 +154,9 @@ export default function Page() {
             onAuthorize={() => authorizeVendor('A')}
           />
           <VendorCard
-            vendorName="Meridian AI"
-            category="Cloud Compute"
-            priceLabel="$0.31/unit"
+            vendorName="CleanList Pro"
+            category="Lead Data"
+            priceLabel="$2,250"
             proposalText={VENDOR_B_PROPOSAL}
             priceCents={VENDOR_B_PRICE_CENTS}
             status={vendorB.status}

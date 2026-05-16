@@ -95,7 +95,7 @@ export default function TreasuryHeader({ balanceCents }: TreasuryHeaderProps) {
             textTransform: 'uppercase',
           }}
         >
-          DUST Balance
+          USDC TREASURY
         </span>
       </div>
     </header>
