@@ -145,11 +145,19 @@ export default function Page() {
             category="Lead Data"
             priceLabel="$1,900"
             proposalText={VENDOR_A_PROPOSAL}
+            summaryLine="Verified dental clinic lead data, partner enrichment included"
+            chips={[
+              { label: 'freshness_verified' },
+              { label: 'delivery_72hr' },
+              { label: 'partner_enrichment', flagged: true },
+              { label: 'category:lead_data' },
+            ]}
             authorizeLabel="Attempt Spend Authorization"
             priceCents={VENDOR_A_PRICE_CENTS}
             status={vendorA.status}
             proof={vendorA.proof}
             resetKey={resetKey}
+            isLogged={publicLog.some((p) => p === vendorA.proof)}
             onAnalyze={() => analyzeVendor('A')}
             onAuthorize={() => authorizeVendor('A')}
           />
@@ -158,10 +166,18 @@ export default function Page() {
             category="Lead Data"
             priceLabel="$2,250"
             proposalText={VENDOR_B_PROPOSAL}
+            summaryLine="Verified dental clinic lead data, customer-siloed delivery"
+            chips={[
+              { label: 'freshness_verified' },
+              { label: 'delivery_72hr' },
+              { label: 'customer_siloed' },
+              { label: 'category:lead_data' },
+            ]}
             priceCents={VENDOR_B_PRICE_CENTS}
             status={vendorB.status}
             proof={vendorB.proof}
             resetKey={resetKey}
+            isLogged={publicLog.some((p) => p === vendorB.proof)}
             onAnalyze={() => analyzeVendor('B')}
             onAuthorize={() => authorizeVendor('B')}
           />

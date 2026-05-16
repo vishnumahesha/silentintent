@@ -5,16 +5,24 @@ import CommitmentHash from './CommitmentHash';
 
 export type VendorStatus = 'idle' | 'analyzing' | 'approved' | 'rejected';
 
+interface Chip {
+  label: string;
+  flagged?: boolean;
+}
+
 interface VendorCardProps {
   vendorName: string;
   category: string;
   priceLabel: string;
   proposalText?: string;
+  summaryLine?: string;
+  chips?: Chip[];
   authorizeLabel?: string;
   priceCents: number;
   status: VendorStatus;
   proof: ProofResult | null;
   resetKey: number;
+  isLogged?: boolean;
   onAnalyze: () => void;
   onAuthorize: () => void;
 }
@@ -49,78 +57,6 @@ function StatusIndicator({ status }: { status: VendorStatus }) {
     );
   }
 
-  if (status === 'approved') {
-    return (
-      <div
-        style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: '6px',
-          backgroundColor: 'rgba(61, 122, 92, 0.12)',
-          border: '1px solid rgba(61, 122, 92, 0.4)',
-          borderRadius: '9999px',
-          padding: '4px 12px',
-        }}
-      >
-        <span
-          style={{
-            width: '6px',
-            height: '6px',
-            borderRadius: '9999px',
-            backgroundColor: 'var(--color-success)',
-            display: 'inline-block',
-          }}
-        />
-        <span
-          style={{
-            fontFamily: "'IBM Plex Mono', monospace",
-            fontSize: '11px',
-            color: 'var(--color-success)',
-            letterSpacing: '0.06em',
-          }}
-        >
-          Authorized
-        </span>
-      </div>
-    );
-  }
-
-  if (status === 'rejected') {
-    return (
-      <div
-        style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: '6px',
-          backgroundColor: 'rgba(122, 61, 61, 0.12)',
-          border: '1px solid rgba(122, 61, 61, 0.4)',
-          borderRadius: '9999px',
-          padding: '4px 12px',
-        }}
-      >
-        <span
-          style={{
-            width: '6px',
-            height: '6px',
-            borderRadius: '9999px',
-            backgroundColor: 'var(--color-reject)',
-            display: 'inline-block',
-          }}
-        />
-        <span
-          style={{
-            fontFamily: "'IBM Plex Mono', monospace",
-            fontSize: '11px',
-            color: 'var(--color-reject)',
-            letterSpacing: '0.06em',
-          }}
-        >
-          Policy threshold exceeded
-        </span>
-      </div>
-    );
-  }
-
   return null;
 }
 
@@ -129,11 +65,14 @@ export default function VendorCard({
   category,
   priceLabel,
   proposalText,
+  summaryLine,
+  chips,
   authorizeLabel,
   priceCents: _priceCents,
   status,
   proof,
   resetKey,
+  isLogged: _isLogged,
   onAnalyze,
   onAuthorize,
 }: VendorCardProps) {
@@ -200,24 +139,67 @@ export default function VendorCard({
               fontSize: '11px',
             }}
           >
-            per unit
+            per list
           </span>
         </div>
       </div>
 
-      {proposalText && (
+      {summaryLine && (
         <p
           style={{
             fontFamily: "'IBM Plex Sans', sans-serif",
-            fontSize: '12px',
-            color: 'var(--color-text-tertiary)',
-            lineHeight: '1.65',
+            fontSize: '13px',
+            color: 'var(--color-text-secondary)',
+            lineHeight: 1.5,
             margin: 0,
-            paddingTop: '4px',
+            paddingTop: '8px',
           }}
         >
-          {proposalText}
+          {summaryLine}
         </p>
+      )}
+
+      {chips && chips.length > 0 && (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '12px' }}>
+          {chips.map((chip) => {
+            const isFlagged = chip.flagged && status === 'rejected';
+            return (
+              <span
+                key={chip.label}
+                style={{
+                  padding: '4px 10px',
+                  fontSize: '11px',
+                  fontFamily: "'IBM Plex Mono', monospace",
+                  borderRadius: '999px',
+                  border: isFlagged
+                    ? '1px solid var(--color-reject)'
+                    : '1px solid var(--color-border-accent)',
+                  background: isFlagged
+                    ? 'rgba(122,61,61,0.12)'
+                    : 'var(--color-surface)',
+                  color: isFlagged
+                    ? 'var(--color-reject)'
+                    : 'var(--color-text-secondary)',
+                }}
+              >
+                {chip.label}
+                {isFlagged && (
+                  <span
+                    style={{
+                      fontSize: '10px',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.06em',
+                      opacity: 0.85,
+                      marginLeft: '6px',
+                    }}
+                  >
+                    FLAGGED
+                  </span>
+                )}
+              </span>
+            );
+          })}
+        </div>
       )}
 
       {proof && (
@@ -243,6 +225,35 @@ export default function VendorCard({
             Price commitment
           </span>
           <CommitmentHash hash={proof.commitmentHash} resetKey={resetKey} />
+        </div>
+      )}
+
+      {proposalText && status !== 'idle' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
+          <span
+            style={{
+              fontFamily: "'IBM Plex Sans', sans-serif",
+              fontSize: '11px',
+              textTransform: 'uppercase',
+              letterSpacing: '0.08em',
+              color: 'var(--color-text-tertiary)',
+              marginBottom: '8px',
+            }}
+          >
+            ANALYSIS
+          </span>
+          <p
+            style={{
+              fontFamily: "'IBM Plex Sans', sans-serif",
+              fontSize: '12px',
+              color: 'var(--color-text-tertiary)',
+              lineHeight: '1.65',
+              margin: 0,
+              paddingTop: '4px',
+            }}
+          >
+            {proposalText}
+          </p>
         </div>
       )}
 
