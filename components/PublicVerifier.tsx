@@ -3,61 +3,91 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import CommitmentHash from './CommitmentHash';
-import { type ProofResult } from '@/lib/mockProof';
+import { type ProofResult, type CheckStatus } from '@/lib/mockProof';
 
 interface PublicVerifierProps {
   log: ProofResult[];
   resetKey: number;
   analyzing: boolean;
+  latestProof: ProofResult | null;
 }
 
-const PROOF_STEPS = [
-  'Commit hidden policy',
-  'Commit extracted offer facts',
-  'Verify offerPrice ≤ maxPrice',
-  'Verify offerCategory matches requiredCategory',
-  'Verify requiredCredential present in offerCredentials',
-  'Verify forbiddenTerm absent from offerForbidden',
-  'Disclose authorization result',
+type StepKey =
+  | 'commit_policy'
+  | 'commit_offer'
+  | 'price'
+  | 'category'
+  | 'credential'
+  | 'forbidden'
+  | 'disclose';
+
+const PROOF_STEPS: { key: StepKey; label: string }[] = [
+  { key: 'commit_policy', label: 'Commit hidden policy' },
+  { key: 'commit_offer', label: 'Commit extracted offer facts' },
+  { key: 'price', label: 'Verify offerPrice ≤ maxPrice' },
+  { key: 'category', label: 'Verify offerCategory matches requiredCategory' },
+  { key: 'credential', label: 'Verify requiredCredential present in offerCredentials' },
+  { key: 'forbidden', label: 'Verify forbiddenTerm absent from offerForbidden' },
+  { key: 'disclose', label: 'Disclose authorization result only' },
 ];
 
-type StepState = 'idle' | 'running' | 'complete';
+type StepState = 'idle' | 'running' | 'pass' | 'fail';
 
-function ProofTimeline({ analyzing }: { analyzing: boolean }) {
+function outcomesFromProof(proof: ProofResult): StepState[] {
+  const checkMap = new Map<string, CheckStatus>(
+    proof.checks.map((c) => [c.id, c.status]),
+  );
+  return PROOF_STEPS.map((step) => {
+    if (step.key in { commit_policy: 1, commit_offer: 1, disclose: 1 }) {
+      return 'pass';
+    }
+    const status = checkMap.get(step.key);
+    if (status === 'pass') return 'pass';
+    if (status === 'fail') return 'fail';
+    return 'pass';
+  });
+}
+
+function ProofTimeline({
+  analyzing,
+  latestProof,
+}: {
+  analyzing: boolean;
+  latestProof: ProofResult | null;
+}) {
   const [stepStates, setStepStates] = useState<StepState[]>(
-    PROOF_STEPS.map(() => 'idle')
+    PROOF_STEPS.map(() => 'idle'),
   );
 
   useEffect(() => {
-    if (!analyzing) {
+    if (analyzing) {
       setStepStates(PROOF_STEPS.map(() => 'idle'));
+      const timers: ReturnType<typeof setTimeout>[] = [];
+      PROOF_STEPS.forEach((_, i) => {
+        timers.push(
+          setTimeout(() => {
+            setStepStates((prev) =>
+              prev.map((s, j) => (j === i ? 'running' : s)),
+            );
+          }, i * 180),
+        );
+      });
+      return () => timers.forEach(clearTimeout);
+    }
+
+    if (latestProof) {
+      setStepStates(outcomesFromProof(latestProof));
       return;
     }
 
-    const timers: ReturnType<typeof setTimeout>[] = [];
-    PROOF_STEPS.forEach((_, i) => {
-      timers.push(
-        setTimeout(() => {
-          setStepStates((prev) =>
-            prev.map((s, j) => (j === i ? 'running' : s))
-          );
-        }, i * 200)
-      );
-      timers.push(
-        setTimeout(() => {
-          setStepStates((prev) =>
-            prev.map((s, j) => (j === i ? 'complete' : s))
-          );
-        }, i * 200 + 160)
-      );
-    });
+    setStepStates(PROOF_STEPS.map(() => 'idle'));
+  }, [analyzing, latestProof]);
 
-    return () => timers.forEach(clearTimeout);
-  }, [analyzing]);
+  const visible = analyzing || latestProof !== null;
 
   return (
     <AnimatePresence>
-      {analyzing && (
+      {visible && (
         <motion.div
           key="timeline"
           initial={{ opacity: 0, height: 0 }}
@@ -87,26 +117,30 @@ function ProofTimeline({ analyzing }: { analyzing: boolean }) {
                 marginBottom: '4px',
               }}
             >
-              Proof generation
+              {analyzing ? 'Proof generation' : 'Proof constraints'}
             </span>
             {PROOF_STEPS.map((step, i) => {
               const state = stepStates[i];
               const dotColor =
                 state === 'running'
                   ? '#4DB8B8'
-                  : state === 'complete'
+                  : state === 'pass'
                   ? 'var(--color-success)'
+                  : state === 'fail'
+                  ? 'var(--color-reject)'
                   : 'var(--color-border-accent)';
               const textColor =
                 state === 'running'
                   ? '#4DB8B8'
-                  : state === 'complete'
+                  : state === 'pass'
                   ? 'var(--color-success)'
+                  : state === 'fail'
+                  ? 'var(--color-reject)'
                   : 'var(--color-text-tertiary)';
 
               return (
                 <div
-                  key={step}
+                  key={step.key}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -136,8 +170,22 @@ function ProofTimeline({ analyzing }: { analyzing: boolean }) {
                       letterSpacing: '0.02em',
                     }}
                   >
-                    {step}
+                    {step.label}
                   </span>
+                  {state === 'fail' && (
+                    <span
+                      style={{
+                        fontFamily: "'IBM Plex Sans', sans-serif",
+                        fontSize: '10px',
+                        color: 'var(--color-reject)',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.08em',
+                        marginLeft: 'auto',
+                      }}
+                    >
+                      Fails
+                    </span>
+                  )}
                 </div>
               );
             })}
@@ -158,9 +206,177 @@ function formatTimestamp(iso: string): string {
   });
 }
 
-export default function PublicVerifier({ log, resetKey, analyzing }: PublicVerifierProps) {
-  const hasAuthorized = log.some((e) => e.authorized);
+function DisclosureRow({ label, value, mono = false }: { label: string; value: string; mono?: boolean }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+      <span style={labelStyle}>{label}</span>
+      <span
+        style={{
+          fontFamily: mono ? "'IBM Plex Mono', monospace" : "'IBM Plex Sans', sans-serif",
+          fontSize: '12px',
+          color: 'var(--color-text-secondary)',
+        }}
+      >
+        {value}
+      </span>
+    </div>
+  );
+}
 
+function HashRow({ label, hash, resetKey }: { label: string; hash: string; resetKey: number }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+      <span style={labelStyle}>{label}</span>
+      <CommitmentHash hash={hash} resetKey={resetKey} />
+    </div>
+  );
+}
+
+function DisclosureEntry({ entry, resetKey }: { entry: ProofResult; resetKey: number }) {
+  const isAuthorized = entry.authorized;
+  const accent = isAuthorized
+    ? 'rgba(61,122,92,0.35)'
+    : 'rgba(122,61,61,0.35)';
+  const accentBg = isAuthorized
+    ? 'rgba(61,122,92,0.06)'
+    : 'rgba(122,61,61,0.06)';
+  const accentColor = isAuthorized
+    ? 'var(--color-success)'
+    : 'var(--color-reject)';
+
+  return (
+    <motion.div
+      key={entry.proofHash}
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -8 }}
+      transition={{ duration: 0.3 }}
+      style={{
+        padding: '14px 16px',
+        backgroundColor: 'var(--color-surface-raised)',
+        borderRadius: '8px',
+        border: `1px solid ${accent}`,
+        boxShadow: 'inset 0 1px 0 0 rgba(255,255,255,0.035)',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '12px',
+      }}
+    >
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          <span
+            style={{
+              fontFamily: "'Space Grotesk', sans-serif",
+              fontSize: '18px',
+              fontWeight: 600,
+              color: accentColor,
+              letterSpacing: '0.02em',
+            }}
+          >
+            {entry.status}
+          </span>
+          <span
+            style={{
+              fontFamily: "'IBM Plex Sans', sans-serif",
+              fontSize: '11px',
+              color: 'var(--color-text-tertiary)',
+            }}
+          >
+            {isAuthorized
+              ? 'Treasury debit authorized'
+              : 'Hidden policy violation. Treasury unchanged.'}
+          </span>
+        </div>
+        <div
+          style={{
+            padding: '4px 10px',
+            borderRadius: '999px',
+            border: `1px solid ${accent}`,
+            backgroundColor: accentBg,
+            fontFamily: "'IBM Plex Mono', monospace",
+            fontSize: '10px',
+            color: accentColor,
+            letterSpacing: '0.06em',
+          }}
+        >
+          {formatTimestamp(entry.timestamp)}
+        </div>
+      </div>
+
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(4, 1fr)',
+          gap: '12px',
+          paddingTop: '4px',
+          borderTop: '1px solid var(--color-border)',
+        }}
+      >
+        <DisclosureRow label="Deal ID" value={entry.dealId} mono />
+        <DisclosureRow label="Policy ID" value={entry.policyId} mono />
+        <DisclosureRow
+          label="Price band"
+          value={isAuthorized && entry.priceBand ? entry.priceBand : '—'}
+          mono
+        />
+        <DisclosureRow
+          label="Treasury"
+          value={isAuthorized && entry.debitCents
+            ? `−$${(entry.debitCents / 100).toLocaleString('en-US')}`
+            : 'unchanged'}
+          mono
+        />
+      </div>
+
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(4, 1fr)',
+          gap: '12px',
+        }}
+      >
+        <HashRow label="Intent commitment" hash={entry.intentCommitment} resetKey={resetKey} />
+        <HashRow label="Offer commitment" hash={entry.offerCommitment} resetKey={resetKey} />
+        <HashRow
+          label="Vendor commitment"
+          hash={isAuthorized ? entry.vendorCommitment : ''}
+          resetKey={resetKey}
+        />
+        <HashRow label="Authorization commitment" hash={entry.authorizationCommitment} resetKey={resetKey} />
+      </div>
+
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          gap: '12px',
+          paddingTop: '4px',
+          borderTop: '1px solid var(--color-border)',
+        }}
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          <span style={labelStyle}>Disclosed</span>
+          <span style={discreteText}>
+            status, deal ID, price band, treasury action, commitments
+          </span>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          <span style={labelStyle}>Hidden</span>
+          <span style={discreteText}>
+            exact budget, forbidden rule, vendor terms, salts, raw witnesses
+          </span>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+export default function PublicVerifier({
+  log,
+  resetKey,
+  analyzing,
+  latestProof,
+}: PublicVerifierProps) {
   return (
     <div
       style={{
@@ -171,24 +387,37 @@ export default function PublicVerifier({ log, resetKey, analyzing }: PublicVerif
         boxShadow: 'inset 0 1px 0 0 rgba(255,255,255,0.035), 0 1px 3px rgba(0,0,0,0.4)',
         display: 'flex',
         flexDirection: 'column',
-        gap: '24px',
-        minHeight: '160px',
+        gap: '20px',
+        minHeight: '180px',
       }}
     >
-      <span
-        style={{
-          fontFamily: "'IBM Plex Mono', monospace",
-          color: 'var(--color-text-primary)',
-          fontSize: '13px',
-          fontWeight: 600,
-          letterSpacing: '0.04em',
-          textTransform: 'uppercase',
-        }}
-      >
-        Public Verifier
-      </span>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <span
+          style={{
+            fontFamily: "'IBM Plex Mono', monospace",
+            color: 'var(--color-text-primary)',
+            fontSize: '13px',
+            fontWeight: 600,
+            letterSpacing: '0.04em',
+            textTransform: 'uppercase',
+          }}
+        >
+          Public Verifier
+        </span>
+        <span
+          style={{
+            fontFamily: "'IBM Plex Sans', sans-serif",
+            fontSize: '11px',
+            color: 'var(--color-text-tertiary)',
+            letterSpacing: '0.06em',
+            textTransform: 'uppercase',
+          }}
+        >
+          Disclose by exception
+        </span>
+      </div>
 
-      <ProofTimeline analyzing={analyzing} />
+      <ProofTimeline analyzing={analyzing} latestProof={latestProof} />
 
       <AnimatePresence mode="wait">
         {log.length === 0 ? (
@@ -204,7 +433,7 @@ export default function PublicVerifier({ log, resetKey, analyzing }: PublicVerif
               justifyContent: 'center',
               gap: '8px',
               flex: 1,
-              padding: '32px 0',
+              padding: '24px 0',
             }}
           >
             <span
@@ -214,16 +443,19 @@ export default function PublicVerifier({ log, resetKey, analyzing }: PublicVerif
                 fontSize: '14px',
               }}
             >
-              Disclose by exception
+              No public authorization yet
             </span>
             <span
               style={{
                 fontFamily: "'IBM Plex Sans', sans-serif",
                 color: 'var(--color-text-tertiary)',
                 fontSize: '12px',
+                textAlign: 'center',
+                maxWidth: '420px',
               }}
             >
-              Proof submissions appear here after authorization.
+              Private policy and vendor terms are not shown.
+              Proof submissions appear here after each authorization attempt.
             </span>
           </motion.div>
         ) : (
@@ -233,90 +465,9 @@ export default function PublicVerifier({ log, resetKey, analyzing }: PublicVerif
           >
             <AnimatePresence>
               {log.map((entry) => (
-                <motion.div
-                  key={entry.proofHash}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -8 }}
-                  transition={{ duration: 0.3 }}
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: '1fr 1fr 1fr 1fr',
-                    gap: '16px',
-                    alignItems: 'center',
-                    padding: '12px 16px',
-                    backgroundColor: 'var(--color-surface-raised)',
-                    borderRadius: '8px',
-                    border: `1px solid ${entry.authorized ? 'rgba(61,122,92,0.25)' : 'rgba(122,61,61,0.25)'}`,
-                    boxShadow: 'inset 0 1px 0 0 rgba(255,255,255,0.035)',
-                  }}
-                >
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    <span style={labelStyle}>Proof Hash</span>
-                    <CommitmentHash hash={entry.proofHash} resetKey={resetKey} />
-                  </div>
-
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    <span style={labelStyle}>Vendor</span>
-                    <span
-                      style={{
-                        fontFamily: "'IBM Plex Sans', sans-serif",
-                        fontSize: '12px',
-                        color: 'var(--color-text-secondary)',
-                      }}
-                    >
-                      {entry.vendorName}
-                    </span>
-                  </div>
-
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    <span style={labelStyle}>Result</span>
-                    <span
-                      style={{
-                        fontFamily: "'IBM Plex Mono', monospace",
-                        fontSize: '11px',
-                        color: entry.authorized ? 'var(--color-success)' : 'var(--color-reject)',
-                        letterSpacing: '0.04em',
-                      }}
-                    >
-                      {entry.publicSignal}
-                    </span>
-                  </div>
-
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    <span style={labelStyle}>Timestamp</span>
-                    <span
-                      style={{
-                        fontFamily: "'IBM Plex Mono', monospace",
-                        fontSize: '12px',
-                        color: 'var(--color-text-tertiary)',
-                      }}
-                    >
-                      {formatTimestamp(entry.timestamp)}
-                    </span>
-                  </div>
-                </motion.div>
+                <DisclosureEntry key={entry.proofHash} entry={entry} resetKey={resetKey} />
               ))}
             </AnimatePresence>
-
-            {hasAuthorized && (
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.4, duration: 0.4 }}
-                style={{
-                  fontFamily: "'IBM Plex Sans', sans-serif",
-                  fontSize: '12px',
-                  fontStyle: 'italic',
-                  color: 'var(--color-text-tertiary)',
-                  textAlign: 'center',
-                  marginTop: '8px',
-                  lineHeight: '1.5',
-                }}
-              >
-                The proof layer between AI agents and company money: private policy in, public authorization out.
-              </motion.p>
-            )}
           </motion.div>
         )}
       </AnimatePresence>
@@ -330,4 +481,11 @@ const labelStyle: React.CSSProperties = {
   color: 'var(--color-text-tertiary)',
   letterSpacing: '0.04em',
   textTransform: 'uppercase',
+};
+
+const discreteText: React.CSSProperties = {
+  fontFamily: "'IBM Plex Sans', sans-serif",
+  fontSize: '11px',
+  color: 'var(--color-text-secondary)',
+  lineHeight: 1.6,
 };

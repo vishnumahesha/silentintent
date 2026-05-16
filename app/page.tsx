@@ -63,18 +63,33 @@ export default function Page() {
       status: result.authorized ? 'approved' : 'rejected',
       proof: result,
     });
+
+    if (!result.authorized) {
+      // Rejected proofs are still publicly disclosed (status + commitments).
+      setPublicLog((prev) =>
+        prev.some((p) => p.proofHash === result.proofHash) ? prev : [result, ...prev],
+      );
+    }
   }, []);
 
   const authorizeVendor = useCallback((vendor: 'A' | 'B') => {
     const state = vendor === 'A' ? vendorA : vendorB;
     if (state.status !== 'approved' || !state.proof) return;
+    const proof = state.proof;
 
-    if (vendor === 'B') {
-      setTreasuryBalance((prev) => prev - VENDOR_B_COST);
-      setLastDebit({ amountCents: VENDOR_B_COST, commitmentHash: state.proof.commitmentHash });
-    }
+    setPublicLog((prev) => {
+      if (prev.some((p) => p.proofHash === proof.proofHash)) return prev;
 
-    setPublicLog((prev) => [state.proof!, ...prev]);
+      if (vendor === 'B') {
+        setTreasuryBalance((bal) => bal - VENDOR_B_COST);
+        setLastDebit({
+          amountCents: VENDOR_B_COST,
+          commitmentHash: proof.authorizationCommitment,
+        });
+      }
+
+      return [proof, ...prev];
+    });
   }, [vendorA, vendorB]);
 
   const resetDemo = useCallback(() => {
@@ -212,6 +227,11 @@ export default function Page() {
           log={publicLog}
           resetKey={resetKey}
           analyzing={vendorA.status === 'analyzing' || vendorB.status === 'analyzing'}
+          latestProof={
+            vendorB.status === 'analyzing' || vendorA.status === 'analyzing'
+              ? null
+              : vendorB.proof ?? vendorA.proof ?? null
+          }
         />
 
         <DemoControls onReset={resetDemo} />
