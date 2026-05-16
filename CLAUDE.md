@@ -77,3 +77,16 @@ When Vishnu says "wrap up", "I'm done", or signals end of session, make a final 
 ## Working directory enforcement
 
 Before pushing, verify `pwd` returns `*/silentintent-sandbox`. If you're somewhere else, stop.
+
+Before reading, editing, or writing ANY file, verify the file path starts with
+`~/hackathon/silentintent-sandbox/` or is a relative path inside the current
+working directory.
+
+If a user request implies editing a file outside this directory (e.g. they paste
+a stack trace pointing to `~/hackathon/midnight-hackathon`), stop and say:
+
+> "That file is outside the sandbox. Open a new Claude Code session in the team
+> repo to edit it."
+
+Do not edit cross-repo even if asked. The sandbox and the team repo are separate
+sessions with separate scopes.
