@@ -1,5 +1,6 @@
 'use client';
 
+import { motion } from 'framer-motion';
 import { type ProofResult } from '@/lib/mockProof';
 import CommitmentHash from './CommitmentHash';
 
@@ -27,7 +28,7 @@ interface VendorCardProps {
   onAuthorize: () => void;
 }
 
-function StatusIndicator({ status }: { status: VendorStatus }) {
+function StatusIndicator({ status, isLogged }: { status: VendorStatus; isLogged: boolean }) {
   if (status === 'idle') return null;
 
   if (status === 'analyzing') {
@@ -57,6 +58,77 @@ function StatusIndicator({ status }: { status: VendorStatus }) {
     );
   }
 
+  if (status === 'rejected') {
+    return (
+      <motion.div
+        initial={{ scale: 1 }}
+        animate={{ scale: [1, 1.015, 1] }}
+        transition={{ duration: 0.6, times: [0, 0.5, 1] }}
+      >
+        <p
+          style={{
+            fontFamily: "'Space Grotesk', sans-serif",
+            fontSize: '28px',
+            fontWeight: 700,
+            color: 'var(--color-reject)',
+            letterSpacing: '0.02em',
+            lineHeight: 1,
+            margin: 0,
+          }}
+        >
+          REJECTED
+        </p>
+        <p
+          style={{
+            fontFamily: "'IBM Plex Sans', sans-serif",
+            fontSize: '12px',
+            color: 'var(--color-text-tertiary)',
+            lineHeight: 1.5,
+            marginTop: '6px',
+          }}
+        >
+          Policy threshold exceeded. Spend authorization denied.
+        </p>
+      </motion.div>
+    );
+  }
+
+  if (status === 'approved') {
+    return (
+      <motion.div
+        initial={{ scale: 1 }}
+        animate={{ scale: [1, 1.015, 1] }}
+        transition={{ duration: 0.6, times: [0, 0.5, 1] }}
+      >
+        <p
+          style={{
+            fontFamily: "'Space Grotesk', sans-serif",
+            fontSize: '28px',
+            fontWeight: 700,
+            color: 'var(--color-success)',
+            letterSpacing: '0.02em',
+            lineHeight: 1,
+            margin: 0,
+          }}
+        >
+          AUTHORIZED
+        </p>
+        <p
+          style={{
+            fontFamily: "'IBM Plex Sans', sans-serif",
+            fontSize: '12px',
+            color: 'var(--color-text-tertiary)',
+            lineHeight: 1.5,
+            marginTop: '6px',
+          }}
+        >
+          Spend authorization granted.{' '}
+          {isLogged ? 'Treasury debited.' : 'Awaiting treasury debit.'}
+        </p>
+      </motion.div>
+    );
+  }
+
   return null;
 }
 
@@ -72,7 +144,7 @@ export default function VendorCard({
   status,
   proof,
   resetKey,
-  isLogged: _isLogged,
+  isLogged = false,
   onAnalyze,
   onAuthorize,
 }: VendorCardProps) {
@@ -80,17 +152,27 @@ export default function VendorCard({
   const canAuthorize = status === 'approved';
   const authLabel = authorizeLabel ?? `Authorize ${vendorName}`;
 
+  const borderColor =
+    status === 'rejected'
+      ? 'var(--color-reject)'
+      : status === 'approved'
+      ? 'var(--color-success)'
+      : 'var(--color-border)';
+
+  const borderWidth = status === 'rejected' || status === 'approved' ? '2px' : '1px';
+
   return (
     <div
       style={{
         backgroundColor: 'var(--color-surface)',
         borderRadius: '14px',
         padding: '24px',
-        border: '1px solid var(--color-border)',
+        border: `${borderWidth} solid ${borderColor}`,
         boxShadow: 'inset 0 1px 0 0 rgba(255,255,255,0.035), 0 1px 3px rgba(0,0,0,0.4)',
         display: 'flex',
         flexDirection: 'column',
         gap: '16px',
+        transition: 'border-color 200ms ease-out',
       }}
     >
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px' }}>
@@ -257,7 +339,7 @@ export default function VendorCard({
         </div>
       )}
 
-      <StatusIndicator status={status} />
+      <StatusIndicator status={status} isLogged={isLogged} />
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: 'auto', paddingTop: '8px' }}>
         <button
