@@ -1,10 +1,16 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useSpring, useMotionValueEvent } from 'framer-motion';
+import { useSpring, useMotionValueEvent, motion, AnimatePresence } from 'framer-motion';
+
+interface LastDebit {
+  amountCents: number;
+  commitmentHash: string;
+}
 
 interface TreasuryHeaderProps {
   balanceCents: number;
+  lastDebit?: LastDebit | null;
 }
 
 function formatDollars(cents: number): string {
@@ -12,6 +18,18 @@ function formatDollars(cents: number): string {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
+}
+
+function formatDebitAmount(cents: number): string {
+  return '$' + (cents / 100).toLocaleString('en-US', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  });
+}
+
+function formatCommitmentHash(hash: string): string {
+  const hex = hash.startsWith('0x') ? hash.slice(2) : hash;
+  return `0x${hex.slice(0, 4)}⋯${hex.slice(-4)}`;
 }
 
 function AnimatedBalance({ balanceCents }: { balanceCents: number }) {
@@ -29,7 +47,7 @@ function AnimatedBalance({ balanceCents }: { balanceCents: number }) {
   return <span>{displayed}</span>;
 }
 
-export default function TreasuryHeader({ balanceCents }: TreasuryHeaderProps) {
+export default function TreasuryHeader({ balanceCents, lastDebit }: TreasuryHeaderProps) {
   return (
     <header
       style={{
@@ -97,6 +115,25 @@ export default function TreasuryHeader({ balanceCents }: TreasuryHeaderProps) {
         >
           USDC TREASURY
         </span>
+        <AnimatePresence>
+          {lastDebit && (
+            <motion.span
+              key={lastDebit.commitmentHash}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1, transition: { duration: 0.4 } }}
+              exit={{ opacity: 0, transition: { duration: 0.2 } }}
+              style={{
+                fontFamily: "'IBM Plex Mono', monospace",
+                fontSize: '11px',
+                color: 'var(--color-text-tertiary)',
+                letterSpacing: '0.02em',
+                marginTop: '4px',
+              }}
+            >
+              {`−${formatDebitAmount(lastDebit.amountCents)} to commitment ${formatCommitmentHash(lastDebit.commitmentHash)}`}
+            </motion.span>
+          )}
+        </AnimatePresence>
       </div>
     </header>
   );

@@ -34,6 +34,7 @@ export default function Page() {
   const [treasuryBalance, setTreasuryBalance] = useState<number>(TREASURY_START);
   const [publicLog, setPublicLog] = useState<ProofResult[]>([]);
   const [resetKey, setResetKey] = useState<number>(0);
+  const [lastDebit, setLastDebit] = useState<{ amountCents: number; commitmentHash: string } | null>(null);
 
   const analyzeVendor = useCallback(async (vendor: 'A' | 'B') => {
     const priceCents = vendor === 'A' ? VENDOR_A_PRICE_CENTS : VENDOR_B_PRICE_CENTS;
@@ -56,6 +57,7 @@ export default function Page() {
 
     if (vendor === 'B') {
       setTreasuryBalance((prev) => prev - VENDOR_B_COST);
+      setLastDebit({ amountCents: VENDOR_B_COST, commitmentHash: state.proof.commitmentHash });
     }
 
     setPublicLog((prev) => [state.proof!, ...prev]);
@@ -67,6 +69,7 @@ export default function Page() {
     setTreasuryBalance(TREASURY_START);
     setPublicLog([]);
     setResetKey((k) => k + 1);
+    setLastDebit(null);
   }, []);
 
   return (
@@ -78,7 +81,7 @@ export default function Page() {
         flexDirection: 'column',
       }}
     >
-      <TreasuryHeader balanceCents={treasuryBalance} />
+      <TreasuryHeader balanceCents={treasuryBalance} lastDebit={lastDebit} />
 
       <main
         style={{
