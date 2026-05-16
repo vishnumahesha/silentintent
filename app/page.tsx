@@ -126,7 +126,7 @@ export default function Page() {
           boxSizing: 'border-box',
         }}
       >
-        <div style={{ paddingTop: '48px', paddingBottom: '32px' }}>
+        <div style={{ paddingTop: '24px', paddingBottom: '40px' }}>
           <p
             style={{
               fontFamily: "'Space Grotesk', sans-serif",
