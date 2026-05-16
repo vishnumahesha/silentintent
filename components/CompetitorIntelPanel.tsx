@@ -3,8 +3,8 @@
 import RedactedField from './RedactedField';
 
 const VENDORS = [
-  { name: 'Axiom Logistics', category: 'Cloud Compute', rate: '$0.42/unit' },
-  { name: 'Meridian AI', category: 'Cloud Compute', rate: '$0.31/unit' },
+  { name: 'BrightReach Data', category: 'Lead Data', rate: '$1,900 / list' },
+  { name: 'CleanList Pro', category: 'Lead Data', rate: '$2,250 / list' },
 ];
 
 export default function CompetitorIntelPanel() {
