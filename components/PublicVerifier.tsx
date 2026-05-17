@@ -232,7 +232,15 @@ function HashRow({ label, hash, resetKey }: { label: string; hash: string; reset
   );
 }
 
-function DisclosureEntry({ entry, resetKey }: { entry: ProofResult; resetKey: number }) {
+function DisclosureEntry({
+  entry,
+  resetKey,
+  isLatest,
+}: {
+  entry: ProofResult;
+  resetKey: number;
+  isLatest: boolean;
+}) {
   const isAuthorized = entry.authorized;
   const accent = isAuthorized
     ? 'rgba(61,122,92,0.35)'
@@ -252,14 +260,17 @@ function DisclosureEntry({ entry, resetKey }: { entry: ProofResult; resetKey: nu
       exit={{ opacity: 0, y: -8 }}
       transition={{ duration: 0.3 }}
       style={{
-        padding: '14px 16px',
+        padding: isLatest ? '18px 20px' : '14px 16px',
         backgroundColor: 'var(--color-surface-raised)',
         borderRadius: '8px',
-        border: `1px solid ${accent}`,
-        boxShadow: 'inset 0 1px 0 0 rgba(255,255,255,0.035)',
+        border: `${isLatest ? '2px' : '1px'} solid ${accent}`,
+        boxShadow: isLatest
+          ? `inset 0 1px 0 0 rgba(255,255,255,0.05), 0 0 0 4px ${accentBg}`
+          : 'inset 0 1px 0 0 rgba(255,255,255,0.035)',
         display: 'flex',
         flexDirection: 'column',
         gap: '12px',
+        opacity: isLatest ? 1 : 0.78,
       }}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
@@ -267,10 +278,11 @@ function DisclosureEntry({ entry, resetKey }: { entry: ProofResult; resetKey: nu
           <span
             style={{
               fontFamily: "'Space Grotesk', sans-serif",
-              fontSize: '18px',
-              fontWeight: 600,
+              fontSize: isLatest ? '22px' : '16px',
+              fontWeight: 700,
               color: accentColor,
               letterSpacing: '0.02em',
+              lineHeight: 1,
             }}
           >
             {entry.status}
@@ -287,19 +299,37 @@ function DisclosureEntry({ entry, resetKey }: { entry: ProofResult; resetKey: nu
               : 'Hidden policy violation. Treasury unchanged.'}
           </span>
         </div>
-        <div
-          style={{
-            padding: '4px 10px',
-            borderRadius: '999px',
-            border: `1px solid ${accent}`,
-            backgroundColor: accentBg,
-            fontFamily: "'IBM Plex Mono', monospace",
-            fontSize: '10px',
-            color: accentColor,
-            letterSpacing: '0.06em',
-          }}
-        >
-          {formatTimestamp(entry.timestamp)}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {isLatest && (
+            <div
+              style={{
+                padding: '4px 10px',
+                borderRadius: '999px',
+                border: `1px solid ${accent}`,
+                backgroundColor: accentBg,
+                fontFamily: "'IBM Plex Mono', monospace",
+                fontSize: '10px',
+                color: accentColor,
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
+              }}
+            >
+              Latest
+            </div>
+          )}
+          <div
+            style={{
+              padding: '4px 10px',
+              borderRadius: '999px',
+              border: '1px solid var(--color-border-accent)',
+              fontFamily: "'IBM Plex Mono', monospace",
+              fontSize: '10px',
+              color: 'var(--color-text-tertiary)',
+              letterSpacing: '0.06em',
+            }}
+          >
+            {formatTimestamp(entry.timestamp)}
+          </div>
         </div>
       </div>
 
@@ -463,9 +493,29 @@ export default function PublicVerifier({
             key="log"
             style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}
           >
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                paddingBottom: '4px',
+              }}
+            >
+              <span style={labelStyle}>Latest authorization</span>
+              {log.length > 1 && (
+                <span style={labelStyle}>
+                  {log.length - 1} previous
+                </span>
+              )}
+            </div>
             <AnimatePresence>
-              {log.map((entry) => (
-                <DisclosureEntry key={entry.proofHash} entry={entry} resetKey={resetKey} />
+              {log.map((entry, i) => (
+                <DisclosureEntry
+                  key={entry.proofHash}
+                  entry={entry}
+                  resetKey={resetKey}
+                  isLatest={i === 0}
+                />
               ))}
             </AnimatePresence>
           </motion.div>
