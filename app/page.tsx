@@ -9,6 +9,7 @@ import VendorCard, { type VendorStatus } from '@/components/VendorCard';
 import AIExtractionPanel from '@/components/AIExtractionPanel';
 import PublicVerifier from '@/components/PublicVerifier';
 import DemoControls from '@/components/DemoControls';
+import NarrativeStepper from '@/components/NarrativeStepper';
 
 const TREASURY_START = 1000000;
 const VENDOR_B_COST = 225000;
@@ -168,6 +169,9 @@ export default function Page() {
           >
             Private policy in. Public authorization out.
           </p>
+          <div style={{ marginTop: '24px' }}>
+            <NarrativeStepper />
+          </div>
         </div>
 
         <div
