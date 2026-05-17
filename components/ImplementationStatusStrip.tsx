@@ -1,6 +1,6 @@
 'use client';
 
-import { InfoIcon } from '@phosphor-icons/react';
+import { CaretDownIcon, InfoIcon } from '@phosphor-icons/react';
 
 const REPO_BASE = 'https://github.com/vishnumahesha/silentintent-sandbox/blob/main';
 
@@ -21,36 +21,61 @@ const LINKS = [
 
 export default function ImplementationStatusStrip() {
   return (
-    <div
+    <details
       style={{
-        display: 'grid',
-        gridTemplateColumns: 'auto 1fr',
-        gap: '20px',
-        padding: '14px 16px',
-        borderRadius: '10px',
+        borderRadius: '8px',
         border: '1px solid var(--color-border)',
-        backgroundColor: 'var(--color-surface)',
-        boxShadow: 'inset 0 1px 0 0 rgba(255,255,255,0.03)',
-        alignItems: 'center',
+        backgroundColor: 'transparent',
+        opacity: 0.78,
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-        <InfoIcon size={14} weight="regular" color="var(--color-text-tertiary)" />
+      <summary
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px',
+          padding: '8px 14px',
+          cursor: 'pointer',
+          listStyle: 'none',
+          userSelect: 'none',
+          fontFamily: "'IBM Plex Sans', sans-serif",
+          fontSize: '11px',
+          color: 'var(--color-text-tertiary)',
+          letterSpacing: '0.02em',
+        }}
+      >
+        <InfoIcon size={12} weight="regular" color="var(--color-text-tertiary)" />
+        <span style={{ flex: 1 }}>
+          Implementation mode: mock proof model with Compact circuit spec.
+        </span>
         <span
           style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '4px',
             fontFamily: "'IBM Plex Mono', monospace",
-            fontSize: '11px',
-            color: 'var(--color-text-secondary)',
+            fontSize: '10px',
+            color: 'var(--color-text-tertiary)',
             letterSpacing: '0.08em',
             textTransform: 'uppercase',
-            fontWeight: 600,
           }}
         >
-          Implementation mode
+          Details
+          <CaretDownIcon size={10} weight="regular" />
         </span>
-      </div>
+      </summary>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+      <div
+        style={{
+          padding: '0 14px 12px 14px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '8px',
+          borderTop: '1px solid var(--color-border)',
+          marginTop: '4px',
+          paddingTop: '12px',
+        }}
+      >
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
           {MODE_LINES.map((line) => (
             <span
@@ -58,7 +83,7 @@ export default function ImplementationStatusStrip() {
               style={{
                 fontFamily: "'IBM Plex Sans', sans-serif",
                 fontSize: '11px',
-                color: 'var(--color-text-secondary)',
+                color: 'var(--color-text-tertiary)',
                 padding: '3px 8px',
                 borderRadius: '999px',
                 border: '1px solid var(--color-border-accent)',
@@ -71,7 +96,7 @@ export default function ImplementationStatusStrip() {
           ))}
         </div>
 
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'center' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center' }}>
           <span
             style={{
               fontFamily: "'IBM Plex Sans', sans-serif",
@@ -83,7 +108,7 @@ export default function ImplementationStatusStrip() {
             See
           </span>
           {LINKS.map((l, i) => (
-            <span key={l.label} style={{ display: 'inline-flex', alignItems: 'center', gap: '12px' }}>
+            <span key={l.label} style={{ display: 'inline-flex', alignItems: 'center', gap: '10px' }}>
               <a
                 href={l.href}
                 target="_blank"
@@ -91,18 +116,11 @@ export default function ImplementationStatusStrip() {
                 style={{
                   fontFamily: "'IBM Plex Mono', monospace",
                   fontSize: '11px',
-                  color: 'var(--color-text-secondary)',
+                  color: 'var(--color-text-tertiary)',
                   letterSpacing: '0.02em',
                   textDecoration: 'none',
                   borderBottom: '1px dotted var(--color-border-accent)',
                   paddingBottom: '1px',
-                  transition: 'color 0.15s',
-                }}
-                onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLAnchorElement).style.color = 'var(--color-treasury-gold)';
-                }}
-                onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLAnchorElement).style.color = 'var(--color-text-secondary)';
                 }}
               >
                 {l.label}
@@ -114,6 +132,6 @@ export default function ImplementationStatusStrip() {
           ))}
         </div>
       </div>
-    </div>
+    </details>
   );
 }
