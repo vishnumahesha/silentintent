@@ -588,29 +588,29 @@ export default function PublicVerifier({
         minHeight: '180px',
       }}
     >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
         <span
           style={{
-            fontFamily: "'IBM Plex Mono', monospace",
+            fontFamily: "'Space Grotesk', sans-serif",
             color: 'var(--color-text-primary)',
-            fontSize: '14px',
+            fontSize: '18px',
             fontWeight: 600,
-            letterSpacing: '0.04em',
-            textTransform: 'uppercase',
+            letterSpacing: '-0.005em',
+            lineHeight: 1.25,
           }}
         >
-          Public Verifier
+          Public proof receipt
         </span>
         <span
           style={{
-            fontFamily: "'IBM Plex Sans', sans-serif",
-            fontSize: '11px',
+            fontFamily: "'IBM Plex Mono', monospace",
+            fontSize: '10px',
             color: 'var(--color-text-tertiary)',
-            letterSpacing: '0.06em',
+            letterSpacing: '0.14em',
             textTransform: 'uppercase',
           }}
         >
-          Disclose by exception
+          Public verifier · disclose by exception
         </span>
       </div>
 

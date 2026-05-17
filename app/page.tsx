@@ -8,7 +8,7 @@ import CompetitorIntelPanel from '@/components/CompetitorIntelPanel';
 import VendorCard, { type VendorStatus } from '@/components/VendorCard';
 import AIExtractionPanel from '@/components/AIExtractionPanel';
 import PublicVerifier from '@/components/PublicVerifier';
-import DemoControls from '@/components/DemoControls';
+import GuidedDemoControls from '@/components/GuidedDemoControls';
 import NarrativeStepper from '@/components/NarrativeStepper';
 import HeroTreasury from '@/components/HeroTreasury';
 import AppFooter from '@/components/AppFooter';
@@ -17,6 +17,8 @@ import DemoStepBanner from '@/components/DemoStepBanner';
 import HomeScreen from '@/components/HomeScreen';
 import IntroSlides from '@/components/IntroSlides';
 import ProductMode from '@/components/ProductMode';
+import WhyNotPromptBox from '@/components/WhyNotPromptBox';
+import CompactPublicReceipt from '@/components/CompactPublicReceipt';
 
 const TREASURY_START = 1000000;
 const VENDOR_B_COST = 225000;
@@ -195,21 +197,44 @@ function GuidedDemoView({
     setLastDebit(null);
   }, []);
 
+  const VENDOR_A_EXTRACTED = {
+    priceLabel: '$1,900',
+    category: 'lead_data',
+    credentials: ['freshness_verified', 'delivery_72hr', 'partner_enrichment'],
+    forbiddenTermsDetected: ['campaign_metadata_reuse'],
+  };
+  const VENDOR_B_EXTRACTED = {
+    priceLabel: '$2,250',
+    category: 'lead_data',
+    credentials: ['freshness_verified', 'delivery_72hr', 'customer_siloed'],
+    forbiddenTermsDetected: [],
+  };
+
   const activeVendor = (() => {
     if (vendorA.status === 'analyzing') {
-      return { name: 'BrightReach Data', status: vendorA.status, chips: VENDOR_A_CHIPS };
+      return { name: 'BrightReach Data', status: vendorA.status, chips: VENDOR_A_CHIPS, extracted: VENDOR_A_EXTRACTED };
     }
     if (vendorB.status === 'analyzing') {
-      return { name: 'CleanList Pro', status: vendorB.status, chips: VENDOR_B_CHIPS };
+      return { name: 'CleanList Pro', status: vendorB.status, chips: VENDOR_B_CHIPS, extracted: VENDOR_B_EXTRACTED };
     }
     if (vendorB.proof) {
-      return { name: 'CleanList Pro', status: vendorB.status, chips: VENDOR_B_CHIPS };
+      return { name: 'CleanList Pro', status: vendorB.status, chips: VENDOR_B_CHIPS, extracted: VENDOR_B_EXTRACTED };
     }
     if (vendorA.proof) {
-      return { name: 'BrightReach Data', status: vendorA.status, chips: VENDOR_A_CHIPS };
+      return { name: 'BrightReach Data', status: vendorA.status, chips: VENDOR_A_CHIPS, extracted: VENDOR_A_EXTRACTED };
     }
     return null;
   })();
+
+  const isVendorBAuthorized = vendorB.proof
+    ? publicLog.some((p) => p.proofHash === vendorB.proof?.proofHash)
+    : false;
+
+  const latestProof = vendorB.status === 'analyzing' || vendorA.status === 'analyzing'
+    ? null
+    : vendorB.proof ?? vendorA.proof ?? null;
+  const isLatestAuthorized = latestProof?.authorized ?? false;
+  const isAnalyzing = vendorA.status === 'analyzing' || vendorB.status === 'analyzing';
 
   return (
     <div
@@ -293,6 +318,18 @@ function GuidedDemoView({
           </div>
         </div>
 
+        <WhyNotPromptBox />
+
+        <GuidedDemoControls
+          vendorAStatus={vendorA.status}
+          vendorBStatus={vendorB.status}
+          isVendorBAuthorized={isVendorBAuthorized}
+          onAnalyzeA={() => analyzeVendor('A')}
+          onAnalyzeB={() => analyzeVendor('B')}
+          onAuthorizeB={() => authorizeVendor('B')}
+          onReset={resetDemo}
+        />
+
         <DemoStepBanner
           vendorAStatus={vendorA.status}
           vendorBStatus={vendorB.status}
@@ -359,34 +396,40 @@ function GuidedDemoView({
         <AIExtractionPanel activeVendor={activeVendor} />
 
         <SectionLabel
-          title="Public verifier"
+          title="Public view"
           subtitle="visible to everyone"
+        />
+
+        <CompactPublicReceipt
+          latestProof={latestProof}
+          isLatestAuthorized={isLatestAuthorized}
+          analyzing={isAnalyzing}
         />
 
         <PublicVerifier
           log={publicLog}
           resetKey={resetKey}
-          analyzing={vendorA.status === 'analyzing' || vendorB.status === 'analyzing'}
-          latestProof={
-            vendorB.status === 'analyzing' || vendorA.status === 'analyzing'
-              ? null
-              : vendorB.proof ?? vendorA.proof ?? null
-          }
+          analyzing={isAnalyzing}
+          latestProof={latestProof}
         />
+
+        <p
+          style={{
+            fontFamily: "'IBM Plex Sans', sans-serif",
+            fontSize: '11px',
+            color: 'var(--color-text-tertiary)',
+            lineHeight: 1.55,
+            letterSpacing: '0.02em',
+            margin: '4px 0 0',
+            textAlign: 'center',
+          }}
+        >
+          Hackathon prototype: cached AI extraction + deterministic proof model with Compact artifacts. No real payment movement.
+        </p>
 
         <ImplementationStatusStrip />
 
         <AppFooter />
-
-        <DemoControls
-          onReset={resetDemo}
-          onAnalyzeA={() => analyzeVendor('A')}
-          onAnalyzeB={() => analyzeVendor('B')}
-          onAuthorizeA={() => authorizeVendor('A')}
-          onAuthorizeB={() => authorizeVendor('B')}
-          vendorAStatus={vendorA.status}
-          vendorBStatus={vendorB.status}
-        />
       </main>
     </div>
   );

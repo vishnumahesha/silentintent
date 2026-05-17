@@ -34,6 +34,12 @@ interface ActiveVendor {
   name: string;
   status: 'idle' | 'analyzing' | 'approved' | 'rejected';
   chips: Array<{ label: string; flagged?: boolean }>;
+  extracted?: {
+    priceLabel: string;
+    category: string;
+    credentials: string[];
+    forbiddenTermsDetected: string[];
+  };
 }
 
 interface AIExtractionPanelProps {
@@ -208,14 +214,14 @@ function PipelinePreview() {
       <span
         style={{
           fontFamily: "'IBM Plex Sans', sans-serif",
-          fontSize: '11px',
-          color: 'var(--color-text-tertiary)',
-          fontStyle: 'italic',
-          lineHeight: 1.5,
+          fontSize: '12px',
+          color: 'var(--color-text-secondary)',
+          lineHeight: 1.55,
           paddingTop: '4px',
         }}
       >
-        Pick a vendor below — the proposal text flows through this pipeline into committed proof inputs.
+        Choose a vendor. AI will extract price, category, credentials, and
+        forbidden terms.
       </span>
     </div>
   );
@@ -224,6 +230,7 @@ function PipelinePreview() {
 function ExtractedFacts({ activeVendor }: { activeVendor: ActiveVendor }) {
   const isAnalyzing = activeVendor.status === 'analyzing';
   const isRejected = activeVendor.status === 'rejected';
+  const ex = activeVendor.extracted;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -235,9 +242,11 @@ function ExtractedFacts({ activeVendor }: { activeVendor: ActiveVendor }) {
             fontSize: '12px',
             color: 'var(--color-text-secondary)',
             fontWeight: 500,
+            letterSpacing: '0.04em',
+            textTransform: 'uppercase',
           }}
         >
-          EXTRACTED FACTS — {activeVendor.name}
+          Extracted facts — {activeVendor.name}
         </span>
         {isAnalyzing && (
           <span
@@ -260,60 +269,86 @@ function ExtractedFacts({ activeVendor }: { activeVendor: ActiveVendor }) {
           variants={containerVariants}
           initial="initial"
           animate="animate"
-          style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}
+          style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}
         >
-          {activeVendor.chips.map((chip) => {
-            const flagged = chip.flagged && isRejected;
-            return (
-              <motion.div
-                key={chip.label}
-                variants={itemVariants}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  padding: '6px 12px',
-                  backgroundColor: flagged ? 'rgba(122,61,61,0.08)' : 'rgba(17,20,24,0.6)',
-                  border: flagged
-                    ? '1px solid var(--color-reject)'
-                    : '1px solid var(--color-border)',
-                  borderRadius: '6px',
-                }}
-              >
-                {flagged && (
-                  <span
-                    style={{
-                      color: 'var(--color-reject)',
-                      fontSize: '10px',
-                      marginRight: '8px',
-                      lineHeight: 1,
-                    }}
-                  >
-                    ●
-                  </span>
-                )}
-                <span
-                  style={{
-                    fontFamily: "'IBM Plex Mono', monospace",
-                    fontSize: '12px',
-                    lineHeight: 1.6,
-                    color: flagged ? 'var(--color-reject)' : 'var(--color-text-tertiary)',
-                  }}
-                >
-                  {'{ '}
-                  <span style={{ color: flagged ? 'var(--color-reject)' : 'var(--color-text-tertiary)' }}>
-                    &quot;{chip.label}&quot;
-                  </span>
-                  {': '}
-                  <span style={{ color: flagged ? 'var(--color-reject)' : 'var(--color-text-secondary)' }}>
-                    true
-                  </span>
-                  {' }'}
-                </span>
+          {ex ? (
+            <>
+              <motion.div variants={itemVariants}>
+                <FactRow label="Price" value={ex.priceLabel} />
               </motion.div>
-            );
-          })}
+              <motion.div variants={itemVariants}>
+                <FactRow label="Category" value={ex.category} />
+              </motion.div>
+              <motion.div variants={itemVariants}>
+                <FactRow
+                  label="Credentials"
+                  value={ex.credentials.length > 0 ? ex.credentials.join(', ') : '—'}
+                />
+              </motion.div>
+              <motion.div variants={itemVariants}>
+                <FactRow
+                  label="Forbidden terms detected"
+                  value={
+                    ex.forbiddenTermsDetected.length > 0
+                      ? ex.forbiddenTermsDetected.join(', ')
+                      : 'none'
+                  }
+                  flagged={ex.forbiddenTermsDetected.length > 0 && isRejected}
+                />
+              </motion.div>
+            </>
+          ) : null}
         </motion.div>
       </AnimatePresence>
+    </div>
+  );
+}
+
+function FactRow({
+  label,
+  value,
+  flagged,
+}: {
+  label: string;
+  value: string;
+  flagged?: boolean;
+}) {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'flex-start',
+        gap: '12px',
+        padding: '8px 12px',
+        backgroundColor: flagged ? 'rgba(122,61,61,0.08)' : 'rgba(17,20,24,0.6)',
+        border: flagged ? '1px solid var(--color-reject)' : '1px solid var(--color-border)',
+        borderRadius: '8px',
+      }}
+    >
+      <span
+        style={{
+          fontFamily: "'IBM Plex Sans', sans-serif",
+          fontSize: '11px',
+          color: 'var(--color-text-tertiary)',
+          letterSpacing: '0.04em',
+          textTransform: 'uppercase',
+          minWidth: '170px',
+          flexShrink: 0,
+        }}
+      >
+        {label}
+      </span>
+      <span
+        style={{
+          fontFamily: "'IBM Plex Mono', monospace",
+          fontSize: '13px',
+          color: flagged ? 'var(--color-reject)' : 'var(--color-text-primary)',
+          lineHeight: 1.5,
+          wordBreak: 'break-word',
+        }}
+      >
+        {value}
+      </span>
     </div>
   );
 }
@@ -332,20 +367,46 @@ export default function AIExtractionPanel({ activeVendor }: AIExtractionPanelPro
         gap: '24px',
       }}
     >
-      <span
-        style={{
-          fontFamily: "'IBM Plex Mono', monospace",
-          color: 'var(--color-text-primary)',
-          fontSize: '14px',
-          fontWeight: 600,
-          letterSpacing: '0.04em',
-          textTransform: 'uppercase',
-        }}
-      >
-        AI Extraction Layer
-      </span>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+        <span
+          style={{
+            fontFamily: "'Space Grotesk', sans-serif",
+            color: 'var(--color-text-primary)',
+            fontSize: '18px',
+            fontWeight: 600,
+            letterSpacing: '-0.005em',
+            lineHeight: 1.25,
+          }}
+        >
+          AI turns proposal text into proof inputs
+        </span>
+        <span
+          style={{
+            fontFamily: "'IBM Plex Mono', monospace",
+            fontSize: '10px',
+            color: 'var(--color-text-tertiary)',
+            letterSpacing: '0.14em',
+            textTransform: 'uppercase',
+          }}
+        >
+          AI extraction layer
+        </span>
+      </div>
 
       <TruthBadge />
+
+      <span
+        style={{
+          fontFamily: "'IBM Plex Sans', sans-serif",
+          fontSize: '11px',
+          color: 'var(--color-text-tertiary)',
+          lineHeight: 1.55,
+          marginTop: '-12px',
+        }}
+      >
+        The proof checks structured values, not the semantic truth of the
+        original proposal.
+      </span>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
         {activeVendor ? (

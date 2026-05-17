@@ -154,30 +154,32 @@ export default function CompetitorIntelPanel() {
         gap: '20px',
       }}
     >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <span
-          style={{
-            fontFamily: "'IBM Plex Mono', monospace",
-            color: 'var(--color-text-primary)',
-            fontSize: '14px',
-            fontWeight: 600,
-            letterSpacing: '0.04em',
-            textTransform: 'uppercase',
-          }}
-        >
-          What vendors learn if intent leaks
-        </span>
-        <span
-          style={{
-            fontFamily: "'IBM Plex Sans', sans-serif",
-            fontSize: '10px',
-            color: 'var(--color-text-tertiary)',
-            letterSpacing: '0.08em',
-            textTransform: 'uppercase',
-          }}
-        >
-          The privacy beat
-        </span>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+          <span
+            style={{
+              fontFamily: "'Space Grotesk', sans-serif",
+              color: 'var(--color-text-primary)',
+              fontSize: '18px',
+              fontWeight: 600,
+              letterSpacing: '-0.005em',
+              lineHeight: 1.25,
+            }}
+          >
+            Why leaking policy is dangerous
+          </span>
+          <span
+            style={{
+              fontFamily: "'IBM Plex Mono', monospace",
+              fontSize: '10px',
+              color: 'var(--color-text-tertiary)',
+              letterSpacing: '0.14em',
+              textTransform: 'uppercase',
+            }}
+          >
+            Leak simulation
+          </span>
+        </div>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
