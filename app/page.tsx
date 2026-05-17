@@ -18,6 +18,7 @@ import IntroSlides from '@/components/IntroSlides';
 import ProductMode from '@/components/ProductMode';
 import WhyNotPromptBox from '@/components/WhyNotPromptBox';
 import PublicReceipt from '@/components/PublicReceipt';
+import MidnightStatusPanel from '@/components/MidnightStatusPanel';
 
 const TREASURY_START = 1000000;
 const VENDOR_B_COST = 225000;
@@ -328,6 +329,8 @@ function GuidedDemoView({
           onAuthorizeB={() => authorizeVendor('B')}
           onReset={resetDemo}
         />
+
+        <MidnightStatusPanel />
 
         <DemoStepBanner
           vendorAStatus={vendorA.status}

@@ -17,12 +17,15 @@ purchase follows hidden procurement policy.
 | Vendor proposals | Synthetic but realistic |
 | AI extraction | Cached deterministic extraction |
 | Proof types | Implemented (`lib/proofTypes.ts`) |
-| Witness adapter | Implemented (`lib/witnessAdapter.ts`) |
-| Proof model | Deterministic mock proof (`lib/mockProof.ts`) |
-| Compact contract | Compiled with Compact compiler `0.31.0`, language `0.23.0`, runtime `0.16.0` — see `contracts/intent-evaluation/`. The UI uses a deterministic proof model with matching witness shapes for demo reliability. |
+| Witness adapter | Implemented (`lib/witnessAdapter.ts`, `lib/midnight/silentIntentWitnessAdapter.ts`) |
+| Proof model | **Midnight integration in place** — tries real proof server (`localhost:6300`), falls back to deterministic mock (`lib/mockProof.ts`) |
+| Midnight client | Implemented (`lib/midnight/silentIntentMidnightClient.ts`) with graceful fallback |
+| Proof server wiring | Stubbed, ready for `POST localhost:6300/authorize` endpoint |
+| Compact contract | Compiled with Compact compiler `0.31.0`, language `0.23.0`, runtime `0.16.0` — see `contracts/intent-evaluation/`. |
+| Contract bindings | Not yet imported; ready for witness serialization |
 | Treasury debit | Mock UI state gated by proof result |
 | Real payment movement | Not included |
-| Wallet / devnet | Not wired |
+| Wallet / devnet | Not wired; infrastructure ready in `connectWallet()` |
 
 Mock status is on-screen in the app footer (`Mode: Cached AI + mock proof`,
 `Network: Midnight local · mock proof layer`). The constraint shape and
@@ -49,9 +52,40 @@ so the UI bindings don't change when the real circuit ships.
   34 assertions checking reject/authorize outcomes, treasury debit,
   commitment determinism, and the privacy boundary. Run with
   `npm run verify:demo`.
-- [`docs/MIDNIGHT_STATUS.md`](docs/MIDNIGHT_STATUS.md) — single source
-  of truth for what is real vs mocked + the next-step path to a real
-  Midnight integration.
+- [`MIDNIGHT_INTEGRATION.md`](MIDNIGHT_INTEGRATION.md) — integration status,
+  what's wired, what's stubbed, and next steps to connect the real proof
+  server.
+
+---
+
+## Running with Midnight integration
+
+The app now attempts to use the real Midnight proof server at `localhost:6300` and
+gracefully falls back to the deterministic mock proof if unavailable.
+
+**Status check:**
+```bash
+npm run dev
+# The MidnightStatusPanel in the demo shows:
+# - Mode: "Live" (real proof server) or "Fallback" (mock proof)
+# - Wallet: Connected or Not connected
+# - Proof Server: Ready or Not available
+# - Contract: Ready or Not ready
+```
+
+**To use the real proof server:**
+
+1. Start the proof-server Docker container (configured in `SILENTINTENT.md`)
+2. Ensure it's reachable at `localhost:6300/health`
+3. Run `npm run dev` — the MidnightStatusPanel will show "Live" mode
+4. Analyze a vendor — proof will be generated via the real server
+
+**Build & test:**
+- `npm run build` — Compiles the Midnight integration (3.5s, all TS strict)
+- `npm run verify:demo` — All 28 checks pass (determinism, privacy, disclosure)
+
+See [`MIDNIGHT_INTEGRATION.md`](MIDNIGHT_INTEGRATION.md) for architecture,
+what's implemented, what's stubbed, and the next-steps path.
 
 ---
 

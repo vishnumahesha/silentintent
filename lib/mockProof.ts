@@ -212,13 +212,52 @@ function vendorIdFromName(vendorName: string): VendorId {
 }
 
 export async function generateProof(
-  _priceCents: number,
+  priceCents: number,
   vendorName: string,
 ): Promise<AuthorizationProofResult> {
-  // Fixed latency so the proof animation registers on every demo run.
-  await new Promise((r) => setTimeout(r, 1400));
+  // Try real Midnight client first
+  try {
+    const { runSilentIntentAuthorization } = await import('./midnight/silentIntentMidnightClient');
+    const midnightResult = await runSilentIntentAuthorization(vendorName, priceCents);
+
+    const vendorId = vendorIdFromName(vendorName);
+    const timestamp = new Date().toISOString();
+    const proofHash = midnightResult.authorizationCommitment;
+
+    return {
+      spendAuthorized: midnightResult.status === 'AUTHORIZED',
+      status: midnightResult.status,
+      priceBand: midnightResult.priceBand as any,
+      dealId: `vendor:${vendorId}:${vendorName}`,
+      policyId: 'policy_id_silentintent_v1',
+      intentCommitment: midnightResult.intentCommitment,
+      offerCommitment: midnightResult.offerCommitment,
+      authorizationCommitment: midnightResult.authorizationCommitment,
+      vendorCommitment: midnightResult.vendorCommitment,
+      treasuryAction: midnightResult.treasuryAction,
+      debitCents: midnightResult.treasuryAction === 'debit_authorized' ? priceCents : undefined,
+      vendorId,
+      vendorName,
+      checks: [
+        { id: 'price', label: 'Price within hidden budget', status: 'hidden', publicExplanation: 'Verified by proof' },
+        { id: 'category', label: 'Category matched', status: 'hidden', publicExplanation: 'Verified by proof' },
+        { id: 'credential', label: 'Required credential present', status: 'hidden', publicExplanation: 'Verified by proof' },
+        { id: 'forbidden', label: 'Forbidden term absent', status: midnightResult.status === 'AUTHORIZED' ? 'pass' : 'fail', publicExplanation: midnightResult.status === 'AUTHORIZED' ? 'None detected' : 'Detected in proposal' },
+        { id: 'disclose', label: 'Only selected outputs disclosed', status: 'hidden', publicExplanation: 'Verified by proof' },
+      ],
+      proofHash,
+      commitmentHash: proofHash,
+      timestamp,
+      authorized: midnightResult.status === 'AUTHORIZED',
+      publicSignal: midnightResult.status === 'AUTHORIZED' ? 'AUTHORIZED' : 'POLICY_VIOLATION',
+    };
+  } catch (error) {
+    console.error('Midnight generateProof failed:', error);
+    // Fall back to deterministic proof
+  }
+
+  // Fallback: deterministic mock proof
   const vendorId = vendorIdFromName(vendorName);
-  // Timestamp captured at proof completion, never at server render time.
   const timestamp = new Date().toISOString();
   return buildProofResult(vendorId, timestamp);
 }
