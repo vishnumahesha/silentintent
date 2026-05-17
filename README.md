@@ -9,6 +9,25 @@ purchase follows hidden procurement policy.
 
 ---
 
+## What is real vs mocked
+
+| Layer | Hackathon status |
+|---|---|
+| Vendor proposals | Synthetic but realistic |
+| AI extraction | Deterministic cached extraction |
+| Proof model | Deterministic mock proof + circuit specification |
+| Treasury debit | Mock UI state gated by proof result |
+| Real payment movement | Not included in v1 |
+| Midnight deployment | Not claimed unless separately wired |
+
+Mock status is on-screen in the app footer (`Mode: Cached AI + mock proof`,
+`Network: Midnight local · mock proof layer`). The constraint shape and
+public-output shape match the live Compact circuit defined in
+[`contracts/SilentIntentAuthorization.pseudo.compact.md`](contracts/SilentIntentAuthorization.pseudo.compact.md),
+so the UI bindings don't change when the real circuit ships.
+
+---
+
 ## 30-second pitch
 
 AI agents are starting to spend money on behalf of companies. Today that
