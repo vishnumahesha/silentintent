@@ -173,7 +173,7 @@ export default function Page() {
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: '1fr 2fr',
+            gridTemplateColumns: '1fr 1.6fr',
             gap: '16px',
           }}
         >
@@ -234,7 +234,15 @@ export default function Page() {
           }
         />
 
-        <DemoControls onReset={resetDemo} />
+        <DemoControls
+          onReset={resetDemo}
+          onAnalyzeA={() => analyzeVendor('A')}
+          onAnalyzeB={() => analyzeVendor('B')}
+          onAuthorizeA={() => authorizeVendor('A')}
+          onAuthorizeB={() => authorizeVendor('B')}
+          vendorAStatus={vendorA.status}
+          vendorBStatus={vendorB.status}
+        />
       </main>
     </div>
   );
