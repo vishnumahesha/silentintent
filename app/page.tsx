@@ -151,11 +151,13 @@ export default function Page() {
               color: 'var(--color-text-primary)',
               lineHeight: 'var(--line-height-display)',
               letterSpacing: '-0.02em',
-              maxWidth: '880px',
+              maxWidth: '920px',
               margin: 0,
             }}
           >
-            Confidential spend authorization for AI agents.
+            Your AI agent has <span style={{ color: 'var(--color-treasury-gold)' }}>$10,000</span> of company money.
+            <br />
+            SilentIntent proves it can only spend on offers that match hidden policy.
           </p>
           <p
             style={{
