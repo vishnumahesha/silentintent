@@ -1,0 +1,185 @@
+// SilentIntent — minimal authorization contract attempt.
+//
+// STATUS: UNCOMPILED. The Compact CLI is not installed in this
+// sandbox (see docs/MIDNIGHT_TOOLING_CHECK.md). The contract below is
+// a best-effort minimal source file that mirrors the constraint shape
+// of lib/mockProof.ts. Syntax details follow the Compact language
+// surface as documented by Midnight; treat as a starting point a
+// teammate with the toolchain can refine and compile.
+//
+// Verified canonical reference: the constraint logic here matches
+// contracts/SilentIntentAuthorization.pseudo.compact.md exactly.
+
+pragma language_version >= 0.16;
+
+import CompactStandardLibrary;
+
+export ledger authorizedDeals: Map<Bytes<10>, Bytes<32>>;
+export ledger usedAuthorizationNonces: Set<Bytes<32>>;
+
+// ---------------------------------------------------------------------------
+// Witnesses
+// ---------------------------------------------------------------------------
+//
+// Every witness here is private to the prover. None of these values
+// appear in the public output of `submitAuthorization`.
+
+witness buyer_max_price_cents(): Uint<64>;
+witness buyer_required_category_hash(): Bytes<32>;
+witness buyer_required_credential_hash(): Bytes<32>;
+witness buyer_forbidden_term_hash(): Bytes<32>;
+witness buyer_intent_salt(): Bytes<32>;
+witness buyer_policy_id(): Bytes<16>;
+
+witness offer_price_cents(): Uint<64>;
+witness offer_category_hash(): Bytes<32>;
+witness offer_credential_hashes(): Vector<4, Bytes<32>>;
+witness detected_forbidden_hashes(): Vector<4, Bytes<32>>;
+witness vendor_hash(): Bytes<32>;
+witness offer_salt(): Bytes<32>;
+
+witness authorization_nonce(): Bytes<32>;
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+pure circuit intent_commitment(
+  max_price_cents: Uint<64>,
+  required_category_hash: Bytes<32>,
+  required_credential_hash: Bytes<32>,
+  forbidden_term_hash: Bytes<32>,
+  policy_id: Bytes<16>,
+  intent_salt: Bytes<32>,
+): Bytes<32> {
+  return persistent_hash<Vector<6, Bytes<32>>>([
+    persistent_hash<Uint<64>>(max_price_cents),
+    required_category_hash,
+    required_credential_hash,
+    forbidden_term_hash,
+    persistent_hash<Bytes<16>>(policy_id),
+    intent_salt
+  ]);
+}
+
+pure circuit offer_commitment(
+  price_cents: Uint<64>,
+  category_hash: Bytes<32>,
+  credential_hashes: Vector<4, Bytes<32>>,
+  detected_forbidden_hashes: Vector<4, Bytes<32>>,
+  vendor_hash: Bytes<32>,
+  offer_salt: Bytes<32>,
+): Bytes<32> {
+  return persistent_hash<Vector<6, Bytes<32>>>([
+    persistent_hash<Uint<64>>(price_cents),
+    category_hash,
+    persistent_hash<Vector<4, Bytes<32>>>(credential_hashes),
+    persistent_hash<Vector<4, Bytes<32>>>(detected_forbidden_hashes),
+    vendor_hash,
+    offer_salt
+  ]);
+}
+
+pure circuit credential_present(
+  haystack: Vector<4, Bytes<32>>,
+  needle: Bytes<32>,
+): Boolean {
+  return haystack[0] == needle
+      || haystack[1] == needle
+      || haystack[2] == needle
+      || haystack[3] == needle;
+}
+
+pure circuit forbidden_absent(
+  detected: Vector<4, Bytes<32>>,
+  needle: Bytes<32>,
+): Boolean {
+  return detected[0] != needle
+      && detected[1] != needle
+      && detected[2] != needle
+      && detected[3] != needle;
+}
+
+pure circuit deal_id_from(offer_commitment: Bytes<32>): Bytes<10> {
+  // 10-byte slice of the offer commitment, used as the public deal id.
+  // In production prefer a domain-separated hash; this matches the
+  // demo's `deal_<10hex>` pattern.
+  return persistent_hash<Bytes<32>>(offer_commitment) as Bytes<10>;
+}
+
+// ---------------------------------------------------------------------------
+// Entry point
+// ---------------------------------------------------------------------------
+//
+// Public outputs:
+//   spend_authorized: whether all constraints pass
+//   price_band:       categorical band, only meaningful when authorized
+//   deal_id:          publishable id derived from the offer commitment
+//   intent_commitment / offer_commitment / authorization_commitment
+//
+// Side effects:
+//   inserts the deal under `authorizedDeals` when authorized,
+//   marks the nonce used in `usedAuthorizationNonces`.
+
+export circuit submit_authorization():
+  [Boolean, Bytes<10>, Bytes<32>, Bytes<32>, Bytes<32>] {
+
+  const max_price = buyer_max_price_cents();
+  const req_cat = buyer_required_category_hash();
+  const req_cred = buyer_required_credential_hash();
+  const forbidden = buyer_forbidden_term_hash();
+  const intent_salt = buyer_intent_salt();
+  const policy_id = buyer_policy_id();
+
+  const offer_price = offer_price_cents();
+  const offer_cat = offer_category_hash();
+  const cred_vec = offer_credential_hashes();
+  const detected = detected_forbidden_hashes();
+  const vendor = vendor_hash();
+  const o_salt = offer_salt();
+
+  const nonce = authorization_nonce();
+
+  // 1. price ≤ max
+  assert offer_price <= max_price "offerPrice exceeds maxPrice";
+
+  // 2. category matches
+  assert offer_cat == req_cat "category mismatch";
+
+  // 3. required credential present
+  assert credential_present(cred_vec, req_cred)
+    "required credential missing from offer";
+
+  // 4. forbidden term absent
+  assert forbidden_absent(detected, forbidden)
+    "forbidden term detected in offer";
+
+  // 5. nonce reuse prevention
+  assert !usedAuthorizationNonces.member(disclose(nonce))
+    "authorization nonce already used";
+
+  // Commitments
+  const ic = intent_commitment(
+    max_price, req_cat, req_cred, forbidden, policy_id, intent_salt
+  );
+  const oc = offer_commitment(
+    offer_price, offer_cat, cred_vec, detected, vendor, o_salt
+  );
+  const dc = deal_id_from(oc);
+  const ac = persistent_hash<Vector<4, Bytes<32>>>([
+    ic, oc, vendor, nonce
+  ]);
+
+  // Record on ledger
+  authorizedDeals.insert(disclose(dc), disclose(ac));
+  usedAuthorizationNonces.insert(disclose(nonce));
+
+  // Disclose public output
+  return [
+    true,
+    disclose(dc),
+    disclose(ic),
+    disclose(oc),
+    disclose(ac)
+  ];
+}
