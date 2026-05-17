@@ -11,20 +11,47 @@ purchase follows hidden procurement policy.
 
 ## What is real vs mocked
 
-| Layer | Hackathon status |
+| Layer | Sandbox status |
 |---|---|
+| Frontend flow | Working end-to-end |
 | Vendor proposals | Synthetic but realistic |
-| AI extraction | Deterministic cached extraction |
-| Proof model | Deterministic mock proof + circuit specification |
+| AI extraction | Cached deterministic extraction |
+| Proof types | Implemented (`lib/proofTypes.ts`) |
+| Witness adapter | Implemented (`lib/witnessAdapter.ts`) |
+| Proof model | Deterministic mock proof (`lib/mockProof.ts`) |
+| Compact contract | Attempted source (`contracts/SilentIntent.compact`); not compiled — see [`docs/MIDNIGHT_STATUS.md`](docs/MIDNIGHT_STATUS.md) |
 | Treasury debit | Mock UI state gated by proof result |
-| Real payment movement | Not included in v1 |
-| Midnight deployment | Not claimed unless separately wired |
+| Real payment movement | Not included |
+| Wallet / devnet | Not wired |
 
 Mock status is on-screen in the app footer (`Mode: Cached AI + mock proof`,
 `Network: Midnight local · mock proof layer`). The constraint shape and
 public-output shape match the live Compact circuit defined in
 [`contracts/SilentIntentAuthorization.pseudo.compact.md`](contracts/SilentIntentAuthorization.pseudo.compact.md),
 so the UI bindings don't change when the real circuit ships.
+
+## Technical artifacts
+
+- [`lib/proofTypes.ts`](lib/proofTypes.ts) — typed witness, public output,
+  and proof-result definitions consumed by the UI and the mock proof.
+- [`lib/witnessAdapter.ts`](lib/witnessAdapter.ts) — maps the buyer
+  policy and the extracted offer facts into a bounded
+  `AuthorizationWitness` and produces all four commitments.
+- [`lib/mockProof.ts`](lib/mockProof.ts) — evaluates the four authorization
+  constraints and emits a `PublicAuthorizationOutput`-shaped result.
+- [`contracts/SilentIntent.compact`](contracts/SilentIntent.compact) —
+  minimal best-effort Compact source. Uncompiled in this sandbox; see
+  [`contracts/README.md`](contracts/README.md) for compile guidance.
+- [`contracts/SilentIntentAuthorization.pseudo.compact.md`](contracts/SilentIntentAuthorization.pseudo.compact.md)
+  — full circuit specification (witnesses, public outputs, 8 constraints,
+  ledger sketch).
+- [`scripts/verify-demo-model.mjs`](scripts/verify-demo-model.mjs) —
+  34 assertions checking reject/authorize outcomes, treasury debit,
+  commitment determinism, and the privacy boundary. Run with
+  `npm run verify:demo`.
+- [`docs/MIDNIGHT_STATUS.md`](docs/MIDNIGHT_STATUS.md) — single source
+  of truth for what is real vs mocked + the next-step path to a real
+  Midnight integration.
 
 ---
 
