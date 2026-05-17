@@ -169,6 +169,19 @@ npm run build
 npm run verify:demo
 ```
 
+## Status
+
+- Frontend demo working end-to-end (Vendor A rejects, Vendor B authorizes, treasury debits)
+- Deterministic mock proof model (no real ZK proof, but constraint shape matches the Compact spec)
+- AI extraction is cached/deterministic — no API key required
+- No real payment movement
+- No Midnight mainnet deployment claimed
+- `npm run build` and `npm run verify:demo` pass on `main`
+
+See [`docs/HANDOFF.md`](docs/HANDOFF.md) for the teammate handoff guide,
+[`docs/COMPONENT_MAP.md`](docs/COMPONENT_MAP.md) for the component overview,
+and [`docs/DEMO_FLOW.md`](docs/DEMO_FLOW.md) for the manual demo flow.
+
 ---
 
 ### About this repo
