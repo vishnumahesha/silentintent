@@ -19,6 +19,7 @@ interface VendorCardProps {
   summaryLine?: string;
   chips?: Chip[];
   authorizeLabel?: string;
+  surfaceLabel?: 'Surface-best offer' | 'Compliant offer';
   priceCents: number;
   status: VendorStatus;
   proof: ProofResult | null;
@@ -87,7 +88,7 @@ function StatusIndicator({ status, isLogged }: { status: VendorStatus; isLogged:
             marginTop: '6px',
           }}
         >
-          Policy threshold exceeded. Spend authorization denied.
+          Hidden reuse clause detected. Spend authorization denied.
         </p>
       </motion.div>
     );
@@ -122,8 +123,8 @@ function StatusIndicator({ status, isLogged }: { status: VendorStatus; isLogged:
             marginTop: '6px',
           }}
         >
-          Spend authorization granted.{' '}
-          {isLogged ? 'Treasury debited.' : 'Awaiting treasury debit.'}
+          Policy satisfied. Treasury debit authorized.{' '}
+          {isLogged ? '' : 'Awaiting authorization click.'}
         </p>
       </motion.div>
     );
@@ -140,6 +141,7 @@ export default function VendorCard({
   summaryLine,
   chips,
   authorizeLabel,
+  surfaceLabel,
   priceCents: _priceCents,
   status,
   proof,
@@ -177,6 +179,23 @@ export default function VendorCard({
     >
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {surfaceLabel && (
+            <span
+              style={{
+                fontFamily: "'IBM Plex Mono', monospace",
+                fontSize: '10px',
+                color:
+                  surfaceLabel === 'Surface-best offer'
+                    ? 'var(--color-treasury-gold)'
+                    : 'var(--color-success)',
+                letterSpacing: '0.14em',
+                textTransform: 'uppercase',
+                alignSelf: 'flex-start',
+              }}
+            >
+              {surfaceLabel}
+            </span>
+          )}
           <span
             style={{
               fontFamily: "'IBM Plex Mono', monospace",
@@ -250,19 +269,23 @@ export default function VendorCard({
               <span
                 key={chip.label}
                 style={{
-                  padding: '4px 10px',
-                  fontSize: '11px',
+                  padding: isFlagged ? '5px 12px' : '4px 10px',
+                  fontSize: isFlagged ? '12px' : '11px',
                   fontFamily: "'IBM Plex Mono', monospace",
+                  fontWeight: isFlagged ? 600 : 400,
                   borderRadius: '999px',
                   border: isFlagged
-                    ? '1px solid var(--color-reject)'
+                    ? '1.5px solid var(--color-reject)'
                     : '1px solid var(--color-border-accent)',
                   background: isFlagged
-                    ? 'rgba(122,61,61,0.12)'
+                    ? 'rgba(122,61,61,0.22)'
                     : 'var(--color-surface)',
                   color: isFlagged
                     ? 'var(--color-reject)'
                     : 'var(--color-text-secondary)',
+                  boxShadow: isFlagged
+                    ? '0 0 0 4px rgba(122,61,61,0.10)'
+                    : undefined,
                 }}
               >
                 {chip.label}

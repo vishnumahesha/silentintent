@@ -199,6 +199,7 @@ export default function Page() {
             proposalText={VENDOR_A_PROPOSAL}
             summaryLine="Verified dental clinic lead data, partner enrichment included"
             chips={VENDOR_A_CHIPS}
+            surfaceLabel="Surface-best offer"
             authorizeLabel="Attempt Spend Authorization"
             priceCents={VENDOR_A_PRICE_CENTS}
             status={vendorA.status}
@@ -215,6 +216,7 @@ export default function Page() {
             proposalText={VENDOR_B_PROPOSAL}
             summaryLine="Verified dental clinic lead data, customer-siloed delivery"
             chips={VENDOR_B_CHIPS}
+            surfaceLabel="Compliant offer"
             priceCents={VENDOR_B_PRICE_CENTS}
             status={vendorB.status}
             proof={vendorB.proof}
