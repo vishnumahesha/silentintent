@@ -66,12 +66,22 @@ const BRIGHTREACH_PROPOSAL_SOURCE =
 const CLEANLIST_PROPOSAL_SOURCE = 'cleanlist-pro:dental-clinic-leads:v1';
 
 export function extractBrightReachFacts(): ExtractedOfferFacts {
+  // `partner_enrichment` appears in BOTH credentials and
+  // detectedForbiddenTerms: BrightReach pitches it as a credential
+  // (a value-add badge), while the AI extraction catches it as a
+  // forbidden reuse signal. The proof rejects on the forbidden
+  // membership check, not on the credentials list.
   return {
     vendorId: 'brightreach',
     vendorName: 'BrightReach Data',
     priceCents: 190000,
     category: 'lead_data',
-    credentials: ['freshness_verified', 'delivery_72hr', 'high_volume'],
+    credentials: [
+      'freshness_verified',
+      'delivery_72hr',
+      'high_volume',
+      'partner_enrichment',
+    ],
     detectedForbiddenTerms: ['campaign_metadata_reuse', 'partner_enrichment'],
     proposalHashSource: BRIGHTREACH_PROPOSAL_SOURCE,
     offerSalt: 'salt:offer:brightreach:v1',

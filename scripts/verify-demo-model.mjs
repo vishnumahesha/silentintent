@@ -27,7 +27,12 @@ const VENDOR_A = {
   vendorName: 'BrightReach Data',
   priceCents: 190000,
   category: 'lead_data',
-  credentials: ['freshness_verified', 'delivery_72hr', 'high_volume'],
+  credentials: [
+    'freshness_verified',
+    'delivery_72hr',
+    'high_volume',
+    'partner_enrichment',
+  ],
   detectedForbiddenTerms: ['campaign_metadata_reuse', 'partner_enrichment'],
   proposalHashSource: 'brightreach-data:dental-clinic-lead-list:v1',
   offerSalt: 'salt:offer:brightreach:v1',
