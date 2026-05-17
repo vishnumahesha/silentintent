@@ -10,6 +10,7 @@ import AIExtractionPanel from '@/components/AIExtractionPanel';
 import PublicVerifier from '@/components/PublicVerifier';
 import DemoControls from '@/components/DemoControls';
 import NarrativeStepper from '@/components/NarrativeStepper';
+import HeroTreasury from '@/components/HeroTreasury';
 
 const TREASURY_START = 1000000;
 const VENDOR_B_COST = 225000;
@@ -143,35 +144,57 @@ export default function Page() {
         }}
       >
         <div style={{ paddingTop: '24px', paddingBottom: '40px' }}>
-          <p
+          <div
             style={{
-              fontFamily: "'Space Grotesk', sans-serif",
-              fontSize: 'var(--font-size-hero)',
-              fontWeight: 'var(--font-weight-hero)',
-              color: 'var(--color-text-primary)',
-              lineHeight: 'var(--line-height-display)',
-              letterSpacing: '-0.02em',
-              maxWidth: '920px',
-              margin: 0,
+              display: 'grid',
+              gridTemplateColumns: 'minmax(0, 1fr) auto',
+              gap: '32px',
+              alignItems: 'center',
             }}
           >
-            Your AI agent has <span style={{ color: 'var(--color-treasury-gold)' }}>$10,000</span> of company money.
-            <br />
-            SilentIntent proves it can only spend on offers that match hidden policy.
-          </p>
-          <p
-            style={{
-              fontFamily: "'IBM Plex Sans', sans-serif",
-              fontSize: '14px',
-              color: 'var(--color-text-tertiary)',
-              letterSpacing: '0.08em',
-              textTransform: 'uppercase',
-              marginTop: '14px',
-            }}
-          >
-            Private policy in. Public authorization out.
-          </p>
-          <div style={{ marginTop: '24px' }}>
+            <div>
+              <p
+                style={{
+                  fontFamily: "'Space Grotesk', sans-serif",
+                  fontSize: 'var(--font-size-hero)',
+                  fontWeight: 'var(--font-weight-hero)',
+                  color: 'var(--color-text-primary)',
+                  lineHeight: 'var(--line-height-display)',
+                  letterSpacing: '-0.02em',
+                  maxWidth: '720px',
+                  margin: 0,
+                }}
+              >
+                Your AI agent has <span style={{ color: 'var(--color-treasury-gold)' }}>$10,000</span> of company money.
+                <br />
+                SilentIntent proves it can only spend on offers that match hidden policy.
+              </p>
+              <p
+                style={{
+                  fontFamily: "'IBM Plex Sans', sans-serif",
+                  fontSize: '14px',
+                  color: 'var(--color-text-tertiary)',
+                  letterSpacing: '0.08em',
+                  textTransform: 'uppercase',
+                  marginTop: '14px',
+                }}
+              >
+                Private policy in. Public authorization out.
+              </p>
+            </div>
+            <HeroTreasury
+              balanceCents={treasuryBalance}
+              hasDebit={lastDebit !== null}
+              debitCents={lastDebit?.amountCents}
+              hasAnyResult={
+                vendorA.status === 'rejected' ||
+                vendorA.status === 'approved' ||
+                vendorB.status === 'rejected' ||
+                vendorB.status === 'approved'
+              }
+            />
+          </div>
+          <div style={{ marginTop: '28px' }}>
             <NarrativeStepper />
           </div>
         </div>
