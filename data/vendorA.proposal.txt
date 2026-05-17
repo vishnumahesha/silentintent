@@ -1,0 +1,9 @@
+BrightReach Data provides high-volume dental practice lead datasets refreshed weekly from commercial web sources and verified partner networks. Our standard package includes 10,000 clinic contacts, optional CRM enrichment, and delivery within 48 hours.
+
+To improve accuracy across future campaigns, BrightReach may use anonymized campaign metadata, segment performance, and buyer interaction signals for partner enrichment, audience modeling, and benchmark optimization across similar customers.
+
+All data is sourced from licensed commercial providers and refreshed on a rolling weekly schedule. Standard support includes onboarding, deduplication, and quarterly relevance reviews.
+
+Price: $1,900
+Delivery: 48 hours
+Volume: 10,000 contacts

@@ -1,0 +1,15 @@
+{
+    "vendorId": "vendor_A",
+    "vendorName": "BrightReach Data",
+    "priceCents": 190000,
+    "category": "lead_data",
+    "credentials": [
+        "weekly_refresh",
+        "high_volume",
+        "crm_enrichment"
+    ],
+    "forbiddenTermsDetected": [
+        "campaign_metadata_reuse"
+    ],
+    "summary": "Cheap and fast, but reuses campaign metadata for partner enrichment across similar customers."
+}
