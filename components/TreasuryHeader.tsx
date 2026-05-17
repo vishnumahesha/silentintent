@@ -47,6 +47,31 @@ function AnimatedBalance({ balanceCents }: { balanceCents: number }) {
   return <span>{displayed}</span>;
 }
 
+function Badge({ label, value }: { label: string; value: string }) {
+  return (
+    <span
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '6px',
+        padding: '3px 8px',
+        borderRadius: '6px',
+        border: '1px solid var(--color-border)',
+        backgroundColor: 'var(--color-surface-raised)',
+        fontFamily: "'IBM Plex Mono', monospace",
+        fontSize: '10px',
+        color: 'var(--color-text-tertiary)',
+        letterSpacing: '0.04em',
+      }}
+    >
+      <span style={{ color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+        {label}
+      </span>
+      <span>{value}</span>
+    </span>
+  );
+}
+
 export default function TreasuryHeader({ balanceCents, lastDebit }: TreasuryHeaderProps) {
   return (
     <header
@@ -59,27 +84,30 @@ export default function TreasuryHeader({ balanceCents, lastDebit }: TreasuryHead
         boxShadow: 'inset 0 1px 0 0 rgba(255,255,255,0.035), 0 1px 3px rgba(0,0,0,0.4)',
       }}
     >
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-        <span
-          style={{
-            fontFamily: "'IBM Plex Mono', monospace",
-            color: 'var(--color-treasury-gold)',
-            fontSize: '20px',
-            fontWeight: 600,
-            letterSpacing: '-0.02em',
-          }}
-        >
-          SilentIntent
-        </span>
-        <span
-          style={{
-            fontFamily: "'IBM Plex Sans', sans-serif",
-            color: 'var(--color-text-secondary)',
-            fontSize: '12px',
-          }}
-        >
-          Treasury Proof Console
-        </span>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px' }}>
+          <span
+            style={{
+              fontFamily: "'IBM Plex Mono', monospace",
+              color: 'var(--color-treasury-gold)',
+              fontSize: '20px',
+              fontWeight: 600,
+              letterSpacing: '-0.02em',
+            }}
+          >
+            SilentIntent
+          </span>
+          <span
+            style={{
+              fontFamily: "'IBM Plex Sans', sans-serif",
+              color: 'var(--color-text-secondary)',
+              fontSize: '12px',
+              letterSpacing: '0.04em',
+            }}
+          >
+            Treasury Proof Console
+          </span>
+        </div>
         <span
           style={{
             fontFamily: "'IBM Plex Sans', sans-serif",
@@ -91,29 +119,36 @@ export default function TreasuryHeader({ balanceCents, lastDebit }: TreasuryHead
         >
           An AI agent can spend company money only if a private proof says the purchase follows policy.
         </span>
+        <div style={{ display: 'flex', gap: '6px', marginTop: '4px' }}>
+          <Badge label="Mode" value="Cached AI + mock proof" />
+          <Badge label="Network" value="Midnight local · mock proof layer" />
+        </div>
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
         <span
           style={{
-            fontFamily: "'IBM Plex Mono', monospace",
-            color: 'var(--color-text-primary)',
-            fontSize: '18px',
-            fontWeight: 500,
-          }}
-        >
-          <AnimatedBalance balanceCents={balanceCents} />
-        </span>
-        <span
-          style={{
             fontFamily: "'IBM Plex Sans', sans-serif",
             color: 'var(--color-text-tertiary)',
             fontSize: '11px',
-            letterSpacing: '0.08em',
+            letterSpacing: '0.1em',
             textTransform: 'uppercase',
           }}
         >
-          USDC TREASURY
+          USDC Treasury
+        </span>
+        <span
+          style={{
+            fontFamily: "'IBM Plex Mono', monospace",
+            color: 'var(--color-treasury-gold)',
+            fontSize: '28px',
+            fontWeight: 600,
+            letterSpacing: '-0.01em',
+            fontVariantNumeric: 'tabular-nums',
+            lineHeight: 1,
+          }}
+        >
+          <AnimatedBalance balanceCents={balanceCents} />
         </span>
         <AnimatePresence>
           {lastDebit && (
