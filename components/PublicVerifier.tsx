@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import CommitmentHash from './CommitmentHash';
-import { type ProofResult, type CheckStatus } from '@/lib/mockProof';
+import { type ProofResult } from '@/lib/mockProof';
 
 interface PublicVerifierProps {
   log: ProofResult[];
@@ -34,11 +34,10 @@ const PROOF_STEPS: { key: StepKey; label: string }[] = [
 type StepState = 'idle' | 'running' | 'pass' | 'fail';
 
 function outcomesFromProof(proof: ProofResult): StepState[] {
-  const checkMap = new Map<string, CheckStatus>(
-    proof.checks.map((c) => [c.id, c.status]),
-  );
+  const checkMap = new Map<string, string>();
+  for (const c of proof.checks) checkMap.set(c.id, c.status);
   return PROOF_STEPS.map((step) => {
-    if (step.key in { commit_policy: 1, commit_offer: 1, disclose: 1 }) {
+    if (step.key === 'commit_policy' || step.key === 'commit_offer' || step.key === 'disclose') {
       return 'pass';
     }
     const status = checkMap.get(step.key);
@@ -397,7 +396,7 @@ function DisclosureEntry({
         <HashRow label="Offer commitment" hash={entry.offerCommitment} resetKey={resetKey} />
         <HashRow
           label="Vendor commitment"
-          hash={isAuthorized ? entry.vendorCommitment : ''}
+          hash={isAuthorized && entry.vendorCommitment ? entry.vendorCommitment : '—'}
           resetKey={resetKey}
         />
         <HashRow label="Authorization commitment" hash={entry.authorizationCommitment} resetKey={resetKey} />

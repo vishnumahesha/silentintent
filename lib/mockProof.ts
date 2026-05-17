@@ -1,159 +1,158 @@
-// Deterministic mock proof model for SilentIntent.
-// All commitments and hashes are content-derived so the same inputs always
-// yield the same outputs. No Math.random, no Date.now in rendered values.
+// Deterministic mock proof for the SilentIntent demo.
 //
-// This is a demo proof layer, not a real Midnight Compact circuit.
+// `generateProof` is the boundary the UI calls. Today it runs the
+// witness adapter + the constraint logic locally and returns a public
+// authorization output plus per-step checks for the proof timeline.
+//
+// To wire a real Compact circuit later: keep `AuthorizationProofResult`
+// stable, build the witness with `buildAuthorizationWitness`, hand it
+// to the Compact prover, and translate the resulting public output
+// into the same `AuthorizationProofResult` shape returned here.
 
-const POLICY_MAX_CENTS = 250000;
-const POLICY_REQUIRED_CATEGORY = 'lead_data';
-const POLICY_REQUIRED_CREDENTIAL = 'freshness_verified';
-const POLICY_FORBIDDEN_TERM = 'campaign_metadata_reuse';
-const POLICY_ID = 'pol_dental_lead_v1';
+import { demoHash } from './proofHash';
+import {
+  buildAuthorizationCommitment,
+  buildAuthorizationWitness,
+  buildBuyerPolicyPrivate,
+  buildIntentCommitment,
+  buildOfferCommitment,
+  buildVendorCommitment,
+  extractFactsFor,
+  priceBandFor,
+  AUTHORIZATION_NONCE_BRIGHTREACH,
+  AUTHORIZATION_NONCE_CLEANLIST,
+  POLICY_ID,
+} from './witnessAdapter';
+import type {
+  AuthorizationProofResult,
+  AuthorizationWitness,
+  BuyerPolicyPrivate,
+  ExtractedOfferFacts,
+  ProofCheck,
+  VendorId,
+} from './proofTypes';
 
+// Re-export type for downstream consumers (PublicVerifier, VendorCard,
+// page.tsx) that import { ProofResult } from this module.
+export type ProofResult = AuthorizationProofResult;
+// CheckStatus is the binary status the UI binds to. The wider
+// ProofCheck.status union from proofTypes can be narrowed to this when
+// the timeline outcomes are derived.
 export type CheckStatus = 'pass' | 'fail';
 
-export type ProofCheck = {
-  id: string;
-  label: string;
-  status: CheckStatus;
-};
+// ---------------------------------------------------------------------------
+// Constraint evaluation (mirrors contracts/SilentIntent.compact)
+// ---------------------------------------------------------------------------
 
-export type ProofResult = {
-  authorized: boolean;
-  publicSignal: 'AUTHORIZED' | 'POLICY_VIOLATION';
-  status: 'AUTHORIZED' | 'REJECTED';
-  vendorId: 'brightreach' | 'cleanlist';
-  vendorName: string;
-  dealId: string;
-  policyId: string;
-  priceBand?: '$2k-$2.5k';
-  treasuryAction: 'unchanged' | 'debit_authorized';
-  debitCents?: number;
-  proofHash: string;
-  commitmentHash: string;
-  intentCommitment: string;
-  offerCommitment: string;
-  vendorCommitment: string;
-  authorizationCommitment: string;
-  checks: ProofCheck[];
-  timestamp: string;
-};
-
-type OfferFacts = {
-  vendorId: 'brightreach' | 'cleanlist';
-  vendorName: string;
-  priceCents: number;
-  category: string;
-  credentials: string[];
-  forbiddenTermsDetected: string[];
-};
-
-const VENDOR_A_FACTS: OfferFacts = {
-  vendorId: 'brightreach',
-  vendorName: 'BrightReach Data',
-  priceCents: 190000,
-  category: 'lead_data',
-  credentials: ['freshness_verified', 'delivery_72hr', 'high_volume'],
-  forbiddenTermsDetected: ['campaign_metadata_reuse', 'partner_enrichment'],
-};
-
-const VENDOR_B_FACTS: OfferFacts = {
-  vendorId: 'cleanlist',
-  vendorName: 'CleanList Pro',
-  priceCents: 225000,
-  category: 'lead_data',
-  credentials: [
-    'freshness_verified',
-    'delivery_72hr',
-    'customer_siloed',
-    'no_cross_client_modeling',
-  ],
-  forbiddenTermsDetected: [],
-};
-
-// Deterministic non-cryptographic hash. Stable for the same input string.
-// Returns a 0x-prefixed 32-hex-char pseudo-commitment.
-function stableHash(input: string): string {
-  let h1 = 0x811c9dc5;
-  let h2 = 0xdeadbeef;
-  for (let i = 0; i < input.length; i++) {
-    const c = input.charCodeAt(i);
-    h1 = Math.imul(h1 ^ c, 0x01000193);
-    h2 = Math.imul(h2 ^ c, 0x85ebca6b);
-  }
-  h1 = (h1 ^ (h1 >>> 16)) >>> 0;
-  h2 = (h2 ^ (h2 >>> 13)) >>> 0;
-  const part = (n: number) => n.toString(16).padStart(8, '0');
-  return '0x' + part(h1) + part(h2) + part(h1 ^ h2) + part(h2 + 0x9e3779b9);
-}
-
-function canonical(obj: unknown): string {
-  if (obj === null || typeof obj !== 'object') return JSON.stringify(obj);
-  if (Array.isArray(obj)) return '[' + obj.map(canonical).join(',') + ']';
-  const keys = Object.keys(obj as Record<string, unknown>).sort();
-  return (
-    '{' +
-    keys
-      .map((k) => JSON.stringify(k) + ':' + canonical((obj as Record<string, unknown>)[k]))
-      .join(',') +
-    '}'
+function evaluateConstraints(witness: AuthorizationWitness): {
+  pricePass: boolean;
+  categoryPass: boolean;
+  credentialPass: boolean;
+  forbiddenPass: boolean;
+} {
+  const pricePass = witness.offerPriceCents <= witness.maxPriceCents;
+  const categoryPass = witness.offerCategoryHash === witness.requiredCategoryHash;
+  const credentialPass = witness.offerCredentialHashes.includes(
+    witness.requiredCredentialHash,
   );
+  const forbiddenPass = !witness.detectedForbiddenTermHashes.includes(
+    witness.forbiddenTermHash,
+  );
+  return { pricePass, categoryPass, credentialPass, forbiddenPass };
 }
 
-function commit(label: string, payload: unknown): string {
-  return stableHash(label + ':' + canonical(payload));
-}
+// ---------------------------------------------------------------------------
+// Public proof checks (what the timeline + receipt render)
+// ---------------------------------------------------------------------------
 
-function evaluateOffer(offer: OfferFacts): ProofCheck[] {
+function buildProofChecks(
+  ev: ReturnType<typeof evaluateConstraints>,
+  authorized: boolean,
+): ProofCheck[] {
+  const toStatus = (b: boolean): 'pass' | 'fail' => (b ? 'pass' : 'fail');
   return [
     {
+      id: 'commit_policy',
+      label: 'Commit hidden policy',
+      status: 'pass',
+      publicExplanation:
+        'Hidden policy values stay private; only the intent commitment is published.',
+    },
+    {
+      id: 'commit_offer',
+      label: 'Commit extracted offer facts',
+      status: 'pass',
+      publicExplanation:
+        'Structured offer facts are committed; raw proposal text is not disclosed.',
+    },
+    {
       id: 'price',
-      label: 'offerPrice ≤ maxPrice',
-      status: offer.priceCents <= POLICY_MAX_CENTS ? 'pass' : 'fail',
+      label: 'Verify offerPrice ≤ maxPrice',
+      status: toStatus(ev.pricePass),
+      publicExplanation:
+        'Public verifier learns whether the price was within the hidden cap.',
     },
     {
       id: 'category',
-      label: 'offerCategory matches requiredCategory',
-      status: offer.category === POLICY_REQUIRED_CATEGORY ? 'pass' : 'fail',
+      label: 'Verify offerCategory matches requiredCategory',
+      status: toStatus(ev.categoryPass),
+      publicExplanation:
+        'Public verifier learns whether the offer category matched, not what the category is.',
     },
     {
       id: 'credential',
-      label: 'requiredCredential present in offerCredentials',
-      status: offer.credentials.includes(POLICY_REQUIRED_CREDENTIAL) ? 'pass' : 'fail',
+      label: 'Verify requiredCredential present in offerCredentials',
+      status: toStatus(ev.credentialPass),
+      publicExplanation:
+        'Public verifier learns whether a required credential was attested.',
     },
     {
       id: 'forbidden',
-      label: 'forbiddenTerm absent from offerForbidden',
-      status: offer.forbiddenTermsDetected.includes(POLICY_FORBIDDEN_TERM) ? 'fail' : 'pass',
+      label: 'Verify forbiddenTerm absent from offerForbidden',
+      status: toStatus(ev.forbiddenPass),
+      publicExplanation:
+        'Public verifier learns whether the forbidden clause was detected, not the clause itself.',
+    },
+    {
+      id: 'disclose',
+      label: 'Disclose authorization result only',
+      status: authorized ? 'pass' : 'pass',
+      publicExplanation:
+        'Only the public authorization output (status, price band, commitments) leaves the prover.',
     },
   ];
 }
 
-function buildProof(offer: OfferFacts, timestamp: string): ProofResult {
-  const policyPayload = {
-    policyId: POLICY_ID,
-    maxPriceCents: POLICY_MAX_CENTS,
-    requiredCategory: POLICY_REQUIRED_CATEGORY,
-    requiredCredential: POLICY_REQUIRED_CREDENTIAL,
-    forbiddenTerm: POLICY_FORBIDDEN_TERM,
-  };
+// ---------------------------------------------------------------------------
+// Build the full result
+// ---------------------------------------------------------------------------
 
-  const intentCommitment = commit('intent', policyPayload);
-  const offerCommitment = commit('offer', offer);
-  const vendorCommitment = commit('vendor', {
-    vendorId: offer.vendorId,
-    vendorName: offer.vendorName,
-  });
+function nonceFor(vendorId: VendorId): string {
+  return vendorId === 'brightreach'
+    ? AUTHORIZATION_NONCE_BRIGHTREACH
+    : AUTHORIZATION_NONCE_CLEANLIST;
+}
 
-  const checks = evaluateOffer(offer);
-  const authorized = checks.every((c) => c.status === 'pass');
+function dealIdFor(vendorId: VendorId, priceCents: number): string {
+  return 'deal_' + demoHash(`deal:${vendorId}:${priceCents}`).slice(2, 12);
+}
+
+function authorizeOffer(
+  policy: BuyerPolicyPrivate,
+  offer: ExtractedOfferFacts,
+  timestamp: string,
+): AuthorizationProofResult {
+  const witness = buildAuthorizationWitness(policy, offer, nonceFor(offer.vendorId));
+  const ev = evaluateConstraints(witness);
+  const authorized =
+    ev.pricePass && ev.categoryPass && ev.credentialPass && ev.forbiddenPass;
   const status: 'AUTHORIZED' | 'REJECTED' = authorized ? 'AUTHORIZED' : 'REJECTED';
 
-  const dealId =
-    'deal_' +
-    stableHash('deal:' + offer.vendorId + ':' + offer.priceCents).slice(2, 12);
-
-  const authorizationCommitment = commit('authorization', {
+  const intentCommitment = buildIntentCommitment(policy);
+  const offerCommitment = buildOfferCommitment(offer);
+  const vendorCommitment = authorized ? buildVendorCommitment(offer) : undefined;
+  const dealId = dealIdFor(offer.vendorId, offer.priceCents);
+  const authorizationCommitment = buildAuthorizationCommitment({
     intentCommitment,
     offerCommitment,
     vendorCommitment,
@@ -161,67 +160,71 @@ function buildProof(offer: OfferFacts, timestamp: string): ProofResult {
     dealId,
   });
 
-  const proofHash = commit('proof', {
-    intentCommitment,
-    offerCommitment,
-    authorizationCommitment,
-    checks: checks.map((c) => ({ id: c.id, status: c.status })),
-  });
+  const checks = buildProofChecks(ev, authorized);
 
   return {
-    authorized,
-    publicSignal: authorized ? 'AUTHORIZED' : 'POLICY_VIOLATION',
+    spendAuthorized: authorized,
     status,
-    vendorId: offer.vendorId,
-    vendorName: offer.vendorName,
+    priceBand: authorized ? priceBandFor(offer.priceCents) : undefined,
     dealId,
     policyId: POLICY_ID,
-    priceBand: authorized ? '$2k-$2.5k' : undefined,
-    treasuryAction: authorized ? 'debit_authorized' : 'unchanged',
-    debitCents: authorized ? offer.priceCents : undefined,
-    proofHash,
-    commitmentHash: authorizationCommitment,
     intentCommitment,
     offerCommitment,
-    vendorCommitment,
     authorizationCommitment,
+    vendorCommitment,
+    treasuryAction: authorized ? 'debit_authorized' : 'unchanged',
+    debitCents: authorized ? offer.priceCents : undefined,
+
+    vendorId: offer.vendorId,
+    vendorName: offer.vendorName,
     checks,
+
+    // Display-only aliases. The UI binds to these names today.
+    proofHash: authorizationCommitment,
+    commitmentHash: authorizationCommitment,
     timestamp,
+
+    authorized,
+    publicSignal: authorized ? 'AUTHORIZED' : 'POLICY_VIOLATION',
   };
 }
 
+// ---------------------------------------------------------------------------
+// Public entry point
+// ---------------------------------------------------------------------------
+
 export function buildProofResult(
-  vendorId: 'brightreach' | 'cleanlist',
+  vendorId: VendorId,
   timestamp: string,
-): ProofResult {
-  const offer = vendorId === 'brightreach' ? VENDOR_A_FACTS : VENDOR_B_FACTS;
-  return buildProof(offer, timestamp);
+): AuthorizationProofResult {
+  const policy = buildBuyerPolicyPrivate();
+  const offer = extractFactsFor(vendorId);
+  return authorizeOffer(policy, offer, timestamp);
 }
 
-function vendorIdFromName(vendorName: string): 'brightreach' | 'cleanlist' {
+function vendorIdFromName(vendorName: string): VendorId {
   return vendorName.toLowerCase().includes('cleanlist') ? 'cleanlist' : 'brightreach';
 }
 
 export async function generateProof(
   _priceCents: number,
   vendorName: string,
-): Promise<ProofResult> {
-  // Fixed 1400ms latency so the proof animation reads on every demo run.
+): Promise<AuthorizationProofResult> {
+  // Fixed latency so the proof animation registers on every demo run.
   await new Promise((r) => setTimeout(r, 1400));
   const vendorId = vendorIdFromName(vendorName);
-  // Timestamp is captured at proof completion time, not render time, so it
-  // does not cause hydration mismatch.
+  // Timestamp captured at proof completion, never at server render time.
   const timestamp = new Date().toISOString();
   return buildProofResult(vendorId, timestamp);
 }
 
-export const __policyForTests = {
-  POLICY_MAX_CENTS,
-  POLICY_REQUIRED_CATEGORY,
-  POLICY_REQUIRED_CREDENTIAL,
-  POLICY_FORBIDDEN_TERM,
-  POLICY_ID,
-  VENDOR_A_FACTS,
-  VENDOR_B_FACTS,
-  buildProofResult,
+// ---------------------------------------------------------------------------
+// Test/script surface
+// ---------------------------------------------------------------------------
+
+export const __testing = {
+  buildBuyerPolicyPrivate,
+  extractFactsFor,
+  buildAuthorizationWitness,
+  authorizeOffer,
 };
