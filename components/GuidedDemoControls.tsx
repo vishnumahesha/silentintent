@@ -151,8 +151,8 @@ function deriveState(props: GuidedDemoControlsProps): DerivedState {
   if (a === 'analyzing') {
     return {
       stateIdx: 1,
-      primaryLabel: 'Attempt BrightReach spend',
-      helper: 'Next: run the authorization proof and check the hidden policy.',
+      primaryLabel: 'Check BrightReach authorization',
+      helper: 'Next: run the hidden policy check.',
       onClick: () => {},
       disabled: true,
     };
@@ -186,7 +186,7 @@ function deriveState(props: GuidedDemoControlsProps): DerivedState {
       stateIdx: 3,
       primaryLabel: 'Authorize CleanList',
       helper:
-        'Next: authorize the compliant offer and reveal only the public receipt.',
+        'Next: generate the public receipt.',
       onClick: props.onAuthorizeB,
       disabled: false,
     };
@@ -197,7 +197,7 @@ function deriveState(props: GuidedDemoControlsProps): DerivedState {
     stateIdx: 4,
     primaryLabel: 'Start over',
     helper:
-      'Demo complete: BrightReach was rejected, CleanList was authorized.',
+      'BrightReach failed the hidden rule. CleanList passed and generated a public receipt.',
     onClick: props.onReset,
     disabled: false,
   };

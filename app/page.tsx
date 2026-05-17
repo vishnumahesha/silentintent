@@ -418,7 +418,7 @@ function GuidedDemoView({
             textAlign: 'center',
           }}
         >
-          Hackathon prototype: cached AI extraction + deterministic proof model with Compact artifacts. No real payment movement.
+          Prototype note: this demo uses cached extraction and deterministic proof execution for reliability. Compact artifacts are included in the repo.
         </p>
 
         <ImplementationStatusStrip />

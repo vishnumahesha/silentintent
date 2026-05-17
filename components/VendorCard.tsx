@@ -97,17 +97,7 @@ function StatusIndicator({ status, isLogged }: { status: VendorStatus; isLogged:
             lineHeight: 1.5,
           }}
         >
-          Hidden reuse clause detected.
-        </span>
-        <span
-          style={{
-            fontFamily: "'IBM Plex Sans', sans-serif",
-            fontSize: '13px',
-            color: 'var(--color-text-secondary)',
-            lineHeight: 1.5,
-          }}
-        >
-          Treasury unchanged.
+          Rejected by hidden policy.
         </span>
       </motion.div>
     );
@@ -150,7 +140,7 @@ function StatusIndicator({ status, isLogged }: { status: VendorStatus; isLogged:
             lineHeight: 1.5,
           }}
         >
-          Policy satisfied.
+          All checks passed.
         </span>
         <span
           style={{

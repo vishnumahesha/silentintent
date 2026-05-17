@@ -80,7 +80,7 @@ export default function PublicReceipt({
             lineHeight: 1.5,
           }}
         >
-          No authorization yet. Run the proof to generate a public receipt.
+          No authorization yet. Run the check to generate a public receipt.
         </span>
       ) : isLatestAuthorized ? (
         <ReceiptBlock
@@ -88,9 +88,10 @@ export default function PublicReceipt({
           reason="All hidden policy checks passed."
           accent={accent}
           lines={[
-            `Treasury debit: −$${(latestProof.debitCents! / 100).toLocaleString('en-US')}`,
+            `Treasury debit authorized: −$${(latestProof.debitCents! / 100).toLocaleString('en-US')}`,
             `Price band: ${latestProof.priceBand ?? '—'}`,
-            'Public saw: status + price band + commitments',
+            'Public saw: authorized status + price band + commitments',
+            'Private stayed hidden: exact policy, raw witness values, full vendor terms.',
           ]}
         />
       ) : (
@@ -100,7 +101,8 @@ export default function PublicReceipt({
           accent={accent}
           lines={[
             'Treasury: unchanged',
-            'Public saw: status + commitments',
+            'Public saw: rejected status + commitments',
+            'Private stayed hidden: exact policy, raw witness values, full vendor terms.',
           ]}
         />
       )}
