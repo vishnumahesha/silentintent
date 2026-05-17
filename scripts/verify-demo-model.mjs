@@ -1,16 +1,25 @@
 #!/usr/bin/env node
 // SilentIntent — demo model verification.
 //
-// This script re-derives the proof outcomes the UI depends on, without
-// importing TypeScript, so it runs with plain `node`. The constants and
-// hash primitive below MUST stay in sync with lib/mockProof.ts. If you
-// change the constraint logic in the TS module, change it here too —
-// this script's job is to fail loudly when the two drift.
+// Re-derives the proof outcomes the sandbox UI depends on, without
+// importing TypeScript so it runs with plain `node`. The constants and
+// hash primitive below MUST stay in sync with lib/witnessAdapter.ts +
+// lib/proofHash.ts. If the TS modules change, change this script too —
+// its job is to fail loudly when the two drift.
 
-const POLICY_MAX_CENTS = 250000;
-const POLICY_REQUIRED_CATEGORY = 'lead_data';
-const POLICY_REQUIRED_CREDENTIAL = 'freshness_verified';
-const POLICY_FORBIDDEN_TERM = 'campaign_metadata_reuse';
+// ---------------------------------------------------------------------------
+// Constants (mirror lib/witnessAdapter.ts)
+// ---------------------------------------------------------------------------
+
+const POLICY = {
+  maxPriceCents: 250000,
+  requiredCategory: 'lead_data',
+  requiredCredential: 'freshness_verified',
+  forbiddenTerm: 'campaign_metadata_reuse',
+  urgencyHours: 72,
+  priority: 'quality_over_volume',
+  intentSalt: 'salt:intent:dental_lead_v1',
+};
 const POLICY_ID = 'pol_dental_lead_v1';
 
 const VENDOR_A = {
@@ -19,7 +28,9 @@ const VENDOR_A = {
   priceCents: 190000,
   category: 'lead_data',
   credentials: ['freshness_verified', 'delivery_72hr', 'high_volume'],
-  forbiddenTermsDetected: ['campaign_metadata_reuse', 'partner_enrichment'],
+  detectedForbiddenTerms: ['campaign_metadata_reuse', 'partner_enrichment'],
+  proposalHashSource: 'brightreach-data:dental-clinic-lead-list:v1',
+  offerSalt: 'salt:offer:brightreach:v1',
 };
 
 const VENDOR_B = {
@@ -33,10 +44,35 @@ const VENDOR_B = {
     'customer_siloed',
     'no_cross_client_modeling',
   ],
-  forbiddenTermsDetected: [],
+  detectedForbiddenTerms: [],
+  proposalHashSource: 'cleanlist-pro:dental-clinic-leads:v1',
+  offerSalt: 'salt:offer:cleanlist:v1',
 };
 
-function stableHash(input) {
+const CREDENTIAL_VECTOR_LENGTH = 4;
+const FORBIDDEN_VECTOR_LENGTH = 4;
+const NONCE = {
+  brightreach: 'nonce:authz:brightreach:v1',
+  cleanlist: 'nonce:authz:cleanlist:v1',
+};
+
+// ---------------------------------------------------------------------------
+// Hash + canonical (mirror lib/proofHash.ts)
+// ---------------------------------------------------------------------------
+
+function stableStringify(value) {
+  if (value === null || typeof value !== 'object') return JSON.stringify(value);
+  if (Array.isArray(value)) return '[' + value.map(stableStringify).join(',') + ']';
+  const keys = Object.keys(value).sort();
+  return (
+    '{' +
+    keys.map((k) => JSON.stringify(k) + ':' + stableStringify(value[k])).join(',') +
+    '}'
+  );
+}
+
+function demoHash(value) {
+  const input = typeof value === 'string' ? value : stableStringify(value);
   let h1 = 0x811c9dc5;
   let h2 = 0xdeadbeef;
   for (let i = 0; i < input.length; i++) {
@@ -50,62 +86,154 @@ function stableHash(input) {
   return '0x' + part(h1) + part(h2) + part(h1 ^ h2) + part((h2 + 0x9e3779b9) >>> 0);
 }
 
-function canonical(obj) {
-  if (obj === null || typeof obj !== 'object') return JSON.stringify(obj);
-  if (Array.isArray(obj)) return '[' + obj.map(canonical).join(',') + ']';
-  const keys = Object.keys(obj).sort();
-  return '{' + keys.map((k) => JSON.stringify(k) + ':' + canonical(obj[k])).join(',') + '}';
+function hashLabel(label) {
+  return demoHash('label:' + label.trim().toLowerCase());
 }
 
-function commit(label, payload) {
-  return stableHash(label + ':' + canonical(payload));
+function padToLength(values, length, label) {
+  const out = values.slice(0, length).map(hashLabel);
+  while (out.length < length) out.push(demoHash(`${label}:empty:${out.length}`));
+  return out;
 }
 
-function evaluate(offer) {
+// ---------------------------------------------------------------------------
+// Witness adapter (mirror lib/witnessAdapter.ts)
+// ---------------------------------------------------------------------------
+
+function buildWitness(offer) {
   return {
-    price: offer.priceCents <= POLICY_MAX_CENTS,
-    category: offer.category === POLICY_REQUIRED_CATEGORY,
-    credential: offer.credentials.includes(POLICY_REQUIRED_CREDENTIAL),
-    forbidden: !offer.forbiddenTermsDetected.includes(POLICY_FORBIDDEN_TERM),
+    maxPriceCents: POLICY.maxPriceCents,
+    requiredCategoryHash: hashLabel(POLICY.requiredCategory),
+    requiredCredentialHash: hashLabel(POLICY.requiredCredential),
+    forbiddenTermHash: hashLabel(POLICY.forbiddenTerm),
+    intentSalt: POLICY.intentSalt,
+    offerPriceCents: offer.priceCents,
+    offerCategoryHash: hashLabel(offer.category),
+    offerCredentialHashes: padToLength(
+      offer.credentials,
+      CREDENTIAL_VECTOR_LENGTH,
+      'credential',
+    ),
+    detectedForbiddenTermHashes: padToLength(
+      offer.detectedForbiddenTerms,
+      FORBIDDEN_VECTOR_LENGTH,
+      'forbidden',
+    ),
+    vendorHash: hashLabel(offer.vendorId),
+    offerSalt: offer.offerSalt,
+    authorizationNonce: NONCE[offer.vendorId],
+  };
+}
+
+function intentCommitment() {
+  return demoHash({
+    label: 'intent',
+    payload: {
+      maxPriceCents: POLICY.maxPriceCents,
+      requiredCategoryHash: hashLabel(POLICY.requiredCategory),
+      requiredCredentialHash: hashLabel(POLICY.requiredCredential),
+      forbiddenTermHash: hashLabel(POLICY.forbiddenTerm),
+      urgencyHours: POLICY.urgencyHours,
+      priority: POLICY.priority,
+    },
+    salt: POLICY.intentSalt,
+  });
+}
+
+function offerCommitment(offer) {
+  return demoHash({
+    label: 'offer',
+    payload: {
+      vendorHash: hashLabel(offer.vendorId),
+      priceCents: offer.priceCents,
+      categoryHash: hashLabel(offer.category),
+      credentialHashes: padToLength(
+        offer.credentials,
+        CREDENTIAL_VECTOR_LENGTH,
+        'credential',
+      ),
+      detectedForbiddenHashes: padToLength(
+        offer.detectedForbiddenTerms,
+        FORBIDDEN_VECTOR_LENGTH,
+        'forbidden',
+      ),
+      proposalHashSource: demoHash('proposal:' + offer.proposalHashSource),
+    },
+    salt: offer.offerSalt,
+  });
+}
+
+function vendorCommitment(offer) {
+  return demoHash({
+    label: 'vendor',
+    payload: { vendorId: offer.vendorId, vendorName: offer.vendorName },
+  });
+}
+
+function authorizationCommitment(parts) {
+  return demoHash({
+    label: 'authorization',
+    payload: {
+      intentCommitment: parts.intentCommitment,
+      offerCommitment: parts.offerCommitment,
+      vendorCommitment: parts.vendorCommitment ?? null,
+      status: parts.status,
+      dealId: parts.dealId,
+    },
+  });
+}
+
+function priceBandFor(priceCents) {
+  if (priceCents >= 200000 && priceCents <= 250000) return '$2k-$2.5k';
+  return undefined;
+}
+
+function evaluate(witness) {
+  return {
+    price: witness.offerPriceCents <= witness.maxPriceCents,
+    category: witness.offerCategoryHash === witness.requiredCategoryHash,
+    credential: witness.offerCredentialHashes.includes(witness.requiredCredentialHash),
+    forbidden: !witness.detectedForbiddenTermHashes.includes(witness.forbiddenTermHash),
   };
 }
 
 function authorize(offer) {
-  const checks = evaluate(offer);
+  const witness = buildWitness(offer);
+  const checks = evaluate(witness);
   const authorized = Object.values(checks).every(Boolean);
-  const policyPayload = {
-    policyId: POLICY_ID,
-    maxPriceCents: POLICY_MAX_CENTS,
-    requiredCategory: POLICY_REQUIRED_CATEGORY,
-    requiredCredential: POLICY_REQUIRED_CREDENTIAL,
-    forbiddenTerm: POLICY_FORBIDDEN_TERM,
-  };
-  const intentCommitment = commit('intent', policyPayload);
-  const offerCommitment = commit('offer', offer);
-  const vendorCommitment = commit('vendor', {
-    vendorId: offer.vendorId,
-    vendorName: offer.vendorName,
-  });
   const status = authorized ? 'AUTHORIZED' : 'REJECTED';
-  const dealId = 'deal_' + stableHash('deal:' + offer.vendorId + ':' + offer.priceCents).slice(2, 12);
-  const authorizationCommitment = commit('authorization', {
-    intentCommitment,
-    offerCommitment,
-    vendorCommitment,
+
+  const ic = intentCommitment();
+  const oc = offerCommitment(offer);
+  const vc = authorized ? vendorCommitment(offer) : undefined;
+  const dealId = 'deal_' + demoHash(`deal:${offer.vendorId}:${offer.priceCents}`).slice(2, 12);
+  const ac = authorizationCommitment({
+    intentCommitment: ic,
+    offerCommitment: oc,
+    vendorCommitment: vc,
     status,
     dealId,
   });
+
   return {
-    authorized,
+    spendAuthorized: authorized,
     status,
+    priceBand: authorized ? priceBandFor(offer.priceCents) : undefined,
+    dealId,
+    policyId: POLICY_ID,
+    intentCommitment: ic,
+    offerCommitment: oc,
+    authorizationCommitment: ac,
+    vendorCommitment: vc,
+    treasuryAction: authorized ? 'debit_authorized' : 'unchanged',
+    debitCents: authorized ? offer.priceCents : undefined,
     checks,
-    debitCents: authorized ? offer.priceCents : 0,
-    intentCommitment,
-    offerCommitment,
-    vendorCommitment,
-    authorizationCommitment,
   };
 }
+
+// ---------------------------------------------------------------------------
+// Assertions
+// ---------------------------------------------------------------------------
 
 const RESET = '\x1b[0m';
 const GREEN = '\x1b[32m';
@@ -132,24 +260,29 @@ const a = authorize(VENDOR_A);
 const b = authorize(VENDOR_B);
 
 console.log(`${BOLD}BrightReach Data${RESET}`);
-expect('rejects', a.authorized, false);
 expect('status REJECTED', a.status, 'REJECTED');
+expect('spendAuthorized false', a.spendAuthorized, false);
+expect('treasuryAction unchanged', a.treasuryAction, 'unchanged');
+expect('debitCents undefined', a.debitCents, undefined);
 expect('price check passes', a.checks.price, true);
 expect('category check passes', a.checks.category, true);
 expect('credential check passes', a.checks.credential, true);
-expect('forbidden check fails', a.checks.forbidden, false);
-expect('treasury debit 0', a.debitCents, 0);
+expect('forbidden check FAILS', a.checks.forbidden, false);
+expect('vendorCommitment withheld when rejected', a.vendorCommitment, undefined);
+expect('priceBand withheld when rejected', a.priceBand, undefined);
 
 console.log(`\n${BOLD}CleanList Pro${RESET}`);
-expect('authorizes', b.authorized, true);
 expect('status AUTHORIZED', b.status, 'AUTHORIZED');
+expect('spendAuthorized true', b.spendAuthorized, true);
+expect('treasuryAction debit_authorized', b.treasuryAction, 'debit_authorized');
+expect('debitCents 225000', b.debitCents, 225000);
+expect('priceBand "$2k-$2.5k"', b.priceBand, '$2k-$2.5k');
 expect('all four checks pass', b.checks, {
   price: true,
   category: true,
   credential: true,
   forbidden: true,
 });
-expect('treasury debit 225000 cents', b.debitCents, 225000);
 
 console.log(`\n${BOLD}Determinism${RESET}`);
 const a2 = authorize(VENDOR_A);
@@ -171,6 +304,42 @@ expect(
   'both vendors share the same intent commitment (same policy)',
   a.intentCommitment,
   b.intentCommitment,
+);
+
+// Privacy guarantees: the public-output shape must not leak any raw
+// witness value. Both raw maxPriceCents and either salt must be absent
+// from JSON.stringify(result).
+console.log(`\n${BOLD}Privacy guarantees${RESET}`);
+const blob = JSON.stringify({ a, b });
+expect(
+  'raw maxPriceCents (250000) absent from public output',
+  blob.includes('250000'),
+  false,
+);
+expect(
+  'intentSalt value absent from public output',
+  blob.includes(POLICY.intentSalt),
+  false,
+);
+expect(
+  'BrightReach offerSalt absent from public output',
+  blob.includes(VENDOR_A.offerSalt),
+  false,
+);
+expect(
+  'CleanList offerSalt absent from public output',
+  blob.includes(VENDOR_B.offerSalt),
+  false,
+);
+expect(
+  'requiredCredential literal absent from public output',
+  blob.includes(POLICY.requiredCredential),
+  false,
+);
+expect(
+  'forbiddenTerm literal absent from public output',
+  blob.includes(POLICY.forbiddenTerm),
+  false,
 );
 
 console.log('');
