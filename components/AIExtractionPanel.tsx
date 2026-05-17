@@ -378,7 +378,7 @@ export default function AIExtractionPanel({ activeVendor }: AIExtractionPanelPro
             lineHeight: 1.25,
           }}
         >
-          AI turns proposal text into proof inputs
+          Proposal text becomes structured proof input
         </span>
         <span
           style={{
@@ -426,7 +426,7 @@ export default function AIExtractionPanel({ activeVendor }: AIExtractionPanelPro
                 fontWeight: 500,
               }}
             >
-              Agent Cannot See
+              Not disclosed publicly
             </span>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>

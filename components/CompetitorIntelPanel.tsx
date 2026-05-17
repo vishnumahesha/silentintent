@@ -49,7 +49,7 @@ export default function CompetitorIntelPanel() {
             lineHeight: 1.5,
           }}
         >
-          If vendors learn the agent's budget and deal-breakers, they can shape offers around the policy instead of competing honestly.
+          Vendors who know the exact budget and rules can tailor offers to barely pass, rather than competing on genuine merit.
         </span>
       </div>
 

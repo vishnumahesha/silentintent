@@ -1,10 +1,10 @@
 'use client';
 
 const STEPS = [
-  { n: '01', label: 'Hidden policy committed' },
-  { n: '02', label: 'AI extracts vendor facts' },
-  { n: '03', label: 'Proof checks constraints' },
-  { n: '04', label: 'Public sees only result' },
+  { n: '01', label: 'Private policy committed' },
+  { n: '02', label: 'Vendor facts extracted' },
+  { n: '03', label: 'Policy check revealed' },
+  { n: '04', label: 'Spend authorized' },
 ];
 
 export default function NarrativeStepper() {

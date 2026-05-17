@@ -338,8 +338,8 @@ function GuidedDemoView({
         />
 
         <SectionLabel
-          title="Private buyer view"
-          subtitle="only the company agent sees this"
+          title="Private side"
+          subtitle="company agent only"
         />
 
         <div
@@ -365,8 +365,8 @@ function GuidedDemoView({
             category="Lead Data"
             priceLabel="$1,900"
             proposalText={VENDOR_A_PROPOSAL}
-            summaryLine="Verified dental clinic lead data, partner enrichment included"
-            descriptiveLine="Cheaper and faster, but risky after extraction."
+            summaryLine="Verified lead data with partner enrichment for audience modeling"
+            descriptiveLine="Cheaper and faster. Partner enrichment violates the company's privacy rule."
             chips={VENDOR_A_CHIPS}
             surfaceLabel="Surface-best offer"
             authorizeLabel="Attempt Spend Authorization"
@@ -383,8 +383,8 @@ function GuidedDemoView({
             category="Lead Data"
             priceLabel="$2,250"
             proposalText={VENDOR_B_PROPOSAL}
-            summaryLine="Verified dental clinic lead data, customer-siloed delivery"
-            descriptiveLine="More expensive, but policy-safe."
+            summaryLine="Verified lead data, customer-siloed with no cross-reuse"
+            descriptiveLine="More expensive. Satisfies all company policy requirements."
             chips={VENDOR_B_CHIPS}
             surfaceLabel="Compliant offer"
             priceCents={VENDOR_B_PRICE_CENTS}
@@ -495,7 +495,7 @@ function ModeToggle({
 }) {
   const options: { value: DemoMode; label: string; sub: string }[] = [
     { value: 'guided', label: 'Guided demo', sub: 'scripted BrightReach / CleanList flow' },
-    { value: 'product', label: 'Try it yourself', sub: 'build a policy, paste an offer, run the proof' },
+    { value: 'product', label: 'Test an offer', sub: 'build a policy, paste an offer, run the proof' },
   ];
 
   return (

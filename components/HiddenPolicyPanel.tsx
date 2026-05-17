@@ -142,7 +142,7 @@ export default function HiddenPolicyPanel({ resetKey }: HiddenPolicyPanelProps) 
             marginTop: '4px',
           }}
         >
-          Only the commitment is public. Raw policy values never leave the buyer.
+          The exact budget, required category, credential rule, and forbidden term stay private. Only the policy commitment is public.
         </span>
       </div>
     </div>

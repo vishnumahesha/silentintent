@@ -46,7 +46,7 @@ export default function ImplementationStatusStrip() {
       >
         <InfoIcon size={12} weight="regular" color="var(--color-text-tertiary)" />
         <span style={{ flex: 1 }}>
-          Implementation mode: mock proof model with Compact circuit spec.
+          Prototype mode: deterministic proof for demonstration purposes.
         </span>
         <span
           style={{

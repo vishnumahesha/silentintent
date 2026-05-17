@@ -49,9 +49,7 @@ export default function WhyNotPromptBox() {
             margin: 0,
           }}
         >
-          Prompting tells an agent what to do. SilentIntent proves whether a
-          proposed spend is allowed. The company keeps its exact policy
-          private, but the public can still verify the authorization result.
+          A prompt tells the agent what to do. SilentIntent checks whether the proposed spend is actually allowed. The company keeps its budget, deal-breakers, and policy private while the public sees only the authorization result.
         </p>
       </div>
     </div>

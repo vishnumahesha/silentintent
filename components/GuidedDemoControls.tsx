@@ -21,11 +21,11 @@ type GuidedDemoControlsProps = {
 };
 
 const STATE_LABEL: Record<number, string> = {
-  0: 'Step 1 of 4 · Analyze BrightReach',
-  1: 'Step 2 of 4 · Run BrightReach proof',
-  2: 'Step 3 of 4 · Analyze CleanList',
-  3: 'Step 4 of 4 · Authorize CleanList',
-  4: 'Demo complete',
+  0: 'Step 1 of 4 · Analyze the cheaper offer',
+  1: 'Step 2 of 4 · Hidden risk found',
+  2: 'Step 3 of 4 · Spend blocked',
+  3: 'Step 4 of 4 · Safer offer found',
+  4: 'Demo complete · Spend authorized',
 };
 
 export default function GuidedDemoControls(props: GuidedDemoControlsProps) {
@@ -137,11 +137,11 @@ function deriveState(props: GuidedDemoControlsProps): DerivedState {
   const b = props.vendorBStatus;
 
   // State 0 — nothing analyzed yet
-  if (a === 'idle' && b === 'idle') {
+  if (a === "idle" && b === "idle") {
     return {
       stateIdx: 0,
-      primaryLabel: 'Analyze BrightReach',
-      helper: 'Next: extract the cheaper offer’s structured facts.',
+      primaryLabel: "Analyze BrightReach",
+      helper: "BrightReach looks cheaper and faster. First, extract the facts the authorization check will use.",
       onClick: props.onAnalyzeA,
       disabled: false,
     };
@@ -151,8 +151,8 @@ function deriveState(props: GuidedDemoControlsProps): DerivedState {
   if (a === 'analyzing') {
     return {
       stateIdx: 1,
-      primaryLabel: 'Check BrightReach authorization',
-      helper: 'Next: run the hidden policy check.',
+      primaryLabel: 'Check BrightReach spend',
+      helper: 'BrightReach includes partner enrichment, which violates the company\'s hidden no-reuse rule.',
       onClick: () => {},
       disabled: true,
     };
@@ -163,7 +163,7 @@ function deriveState(props: GuidedDemoControlsProps): DerivedState {
     return {
       stateIdx: 2,
       primaryLabel: 'Analyze CleanList',
-      helper: 'Next: inspect the safer offer.',
+      helper: 'The offer looked good publicly, but the hidden policy rejected it. Treasury stayed at $10,000.',
       onClick: props.onAnalyzeB,
       disabled: false,
     };
@@ -174,7 +174,7 @@ function deriveState(props: GuidedDemoControlsProps): DerivedState {
     return {
       stateIdx: 2,
       primaryLabel: 'Running CleanList proof…',
-      helper: 'Next: inspect the safer offer.',
+      helper: 'CleanList costs more, but it satisfies the hidden policy.',
       onClick: () => {},
       disabled: true,
     };
@@ -186,7 +186,7 @@ function deriveState(props: GuidedDemoControlsProps): DerivedState {
       stateIdx: 3,
       primaryLabel: 'Authorize CleanList',
       helper:
-        'Next: generate the public receipt.',
+        'CleanList passed the hidden checks. Now authorize the spend and generate the public receipt.',
       onClick: props.onAuthorizeB,
       disabled: false,
     };
@@ -197,7 +197,7 @@ function deriveState(props: GuidedDemoControlsProps): DerivedState {
     stateIdx: 4,
     primaryLabel: 'Start over',
     helper:
-      'BrightReach failed the hidden rule. CleanList passed and generated a public receipt.',
+      'CleanList passed the hidden checks. The treasury debit was authorized, and the public receipt revealed only selected fields.',
     onClick: props.onReset,
     disabled: false,
   };

@@ -60,7 +60,7 @@ export default function TreasuryHeader({ balanceCents, lastDebit }: TreasuryHead
       }}
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
           <span
             style={{
               fontFamily: "'IBM Plex Mono', monospace",
@@ -80,7 +80,7 @@ export default function TreasuryHeader({ balanceCents, lastDebit }: TreasuryHead
               letterSpacing: '0.04em',
             }}
           >
-            Treasury Proof Console
+            Private spend gate for AI agents
           </span>
         </div>
         <span
@@ -92,7 +92,7 @@ export default function TreasuryHeader({ balanceCents, lastDebit }: TreasuryHead
             lineHeight: '1.5',
           }}
         >
-          An AI agent can spend company money only if a private proof says the purchase follows policy.
+          An AI agent has access to company money. SilentIntent checks whether a proposed purchase follows hidden company policy before the treasury can approve spend.
         </span>
       </div>
 
