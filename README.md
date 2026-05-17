@@ -19,7 +19,7 @@ purchase follows hidden procurement policy.
 | Proof types | Implemented (`lib/proofTypes.ts`) |
 | Witness adapter | Implemented (`lib/witnessAdapter.ts`) |
 | Proof model | Deterministic mock proof (`lib/mockProof.ts`) |
-| Compact contract | Attempted source (`contracts/SilentIntent.compact`); not compiled — see [`docs/MIDNIGHT_STATUS.md`](docs/MIDNIGHT_STATUS.md) |
+| Compact contract | Compiled with Compact compiler `0.31.0`, language `0.23.0`, runtime `0.16.0` — see `contracts/intent-evaluation/`. The UI uses a deterministic proof model with matching witness shapes for demo reliability. |
 | Treasury debit | Mock UI state gated by proof result |
 | Real payment movement | Not included |
 | Wallet / devnet | Not wired |
@@ -39,9 +39,9 @@ so the UI bindings don't change when the real circuit ships.
   `AuthorizationWitness` and produces all four commitments.
 - [`lib/mockProof.ts`](lib/mockProof.ts) — evaluates the four authorization
   constraints and emits a `PublicAuthorizationOutput`-shaped result.
-- [`contracts/SilentIntent.compact`](contracts/SilentIntent.compact) —
-  minimal best-effort Compact source. Uncompiled in this sandbox; see
-  [`contracts/README.md`](contracts/README.md) for compile guidance.
+- [`contracts/intent-evaluation/SilentIntent.compact`](contracts/intent-evaluation/SilentIntent.compact) —
+  compiled circuit (Compact compiler 0.31.0, language 0.23.0, runtime 0.16.0).
+  Compiled metadata in [`contracts/intent-evaluation/contract-info.json`](contracts/intent-evaluation/contract-info.json).
 - [`contracts/SilentIntentAuthorization.pseudo.compact.md`](contracts/SilentIntentAuthorization.pseudo.compact.md)
   — full circuit specification (witnesses, public outputs, 8 constraints,
   ledger sketch).
