@@ -73,6 +73,10 @@ function ControlButton({
   );
 }
 
+// Run-Full-Demo is for local rehearsal only. Hidden in production builds
+// so the recorded demo uses the manual narrated flow.
+const SHOW_RUN_FULL_DEMO = process.env.NODE_ENV !== 'production';
+
 export default function DemoControls({
   onReset,
   onAnalyzeA,
@@ -182,12 +186,14 @@ export default function DemoControls({
           disabled={!bApproved || running}
           variant="approve"
         />
-        <ControlButton
-          label={running ? 'Running…' : 'Run Full Demo'}
-          onClick={() => setRunning(true)}
-          disabled={running}
-          variant="neutral"
-        />
+        {SHOW_RUN_FULL_DEMO && (
+          <ControlButton
+            label={running ? 'Running…' : 'Run Full Demo'}
+            onClick={() => setRunning(true)}
+            disabled={running}
+            variant="neutral"
+          />
+        )}
         <ControlButton
           label="Reset Demo"
           onClick={onReset}
