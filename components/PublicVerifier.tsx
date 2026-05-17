@@ -260,25 +260,52 @@ function DisclosureEntry({
       exit={{ opacity: 0, y: -8 }}
       transition={{ duration: 0.3 }}
       style={{
-        padding: isLatest ? '18px 20px' : '14px 16px',
+        position: 'relative',
+        padding: isLatest ? '20px 22px 20px 28px' : '14px 16px 14px 22px',
         backgroundColor: 'var(--color-surface-raised)',
-        borderRadius: '8px',
+        borderRadius: '10px',
         border: `${isLatest ? '2px' : '1px'} solid ${accent}`,
         boxShadow: isLatest
-          ? `inset 0 1px 0 0 rgba(255,255,255,0.05), 0 0 0 4px ${accentBg}`
+          ? `inset 0 1px 0 0 rgba(255,255,255,0.05), 0 0 0 6px ${accentBg}`
           : 'inset 0 1px 0 0 rgba(255,255,255,0.035)',
         display: 'flex',
         flexDirection: 'column',
-        gap: '12px',
+        gap: '14px',
         opacity: isLatest ? 1 : 0.78,
+        overflow: 'hidden',
       }}
     >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+      <span
+        aria-hidden
+        style={{
+          position: 'absolute',
+          left: 0,
+          top: 0,
+          bottom: 0,
+          width: '5px',
+          backgroundColor: accentColor,
+          opacity: isLatest ? 1 : 0.6,
+        }}
+      />
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          {isLatest && (
+            <span
+              style={{
+                fontFamily: "'IBM Plex Mono', monospace",
+                fontSize: '10px',
+                color: 'var(--color-text-tertiary)',
+                letterSpacing: '0.16em',
+                textTransform: 'uppercase',
+              }}
+            >
+              Proof Receipt
+            </span>
+          )}
           <span
             style={{
               fontFamily: "'Space Grotesk', sans-serif",
-              fontSize: isLatest ? '22px' : '16px',
+              fontSize: isLatest ? '32px' : '18px',
               fontWeight: 700,
               color: accentColor,
               letterSpacing: '0.02em',
@@ -290,8 +317,9 @@ function DisclosureEntry({
           <span
             style={{
               fontFamily: "'IBM Plex Sans', sans-serif",
-              fontSize: '11px',
-              color: 'var(--color-text-tertiary)',
+              fontSize: '12px',
+              color: 'var(--color-text-secondary)',
+              lineHeight: 1.4,
             }}
           >
             {isAuthorized
