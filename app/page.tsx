@@ -14,6 +14,8 @@ import HeroTreasury from '@/components/HeroTreasury';
 import AppFooter from '@/components/AppFooter';
 import ImplementationStatusStrip from '@/components/ImplementationStatusStrip';
 import DemoStepBanner from '@/components/DemoStepBanner';
+import HomeScreen from '@/components/HomeScreen';
+import IntroSlides from '@/components/IntroSlides';
 
 const TREASURY_START = 1000000;
 const VENDOR_B_COST = 225000;
@@ -47,7 +49,44 @@ interface VendorState {
 
 const INITIAL_VENDOR_STATE: VendorState = { status: 'idle', proof: null };
 
+type AppView = 'home' | 'intro' | 'demo';
+
 export default function Page() {
+  const [view, setView] = useState<AppView>('home');
+
+  if (view === 'home') {
+    return (
+      <HomeScreen
+        onViewIntro={() => setView('intro')}
+        onOpenDemo={() => setView('demo')}
+      />
+    );
+  }
+
+  if (view === 'intro') {
+    return (
+      <IntroSlides
+        onExitToHome={() => setView('home')}
+        onOpenDemo={() => setView('demo')}
+      />
+    );
+  }
+
+  return (
+    <DemoView
+      onGoHome={() => setView('home')}
+      onGoIntro={() => setView('intro')}
+    />
+  );
+}
+
+function DemoView({
+  onGoHome,
+  onGoIntro,
+}: {
+  onGoHome: () => void;
+  onGoIntro: () => void;
+}) {
   const [vendorA, setVendorA] = useState<VendorState>(INITIAL_VENDOR_STATE);
   const [vendorB, setVendorB] = useState<VendorState>(INITIAL_VENDOR_STATE);
   const [treasuryBalance, setTreasuryBalance] = useState<number>(TREASURY_START);
@@ -131,6 +170,7 @@ export default function Page() {
         flexDirection: 'column',
       }}
     >
+      <DemoNav onGoHome={onGoHome} onGoIntro={onGoIntro} />
       <TreasuryHeader balanceCents={treasuryBalance} lastDebit={lastDebit} />
 
       <main
@@ -299,6 +339,86 @@ export default function Page() {
       </main>
     </div>
   );
+}
+
+function DemoNav({
+  onGoHome,
+  onGoIntro,
+}: {
+  onGoHome: () => void;
+  onGoIntro: () => void;
+}) {
+  return (
+    <div
+      style={{
+        padding: '10px 24px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px',
+        backgroundColor: 'rgba(10,12,15,0.6)',
+        borderBottom: '1px solid var(--color-border)',
+      }}
+    >
+      <button
+        type="button"
+        onClick={onGoHome}
+        aria-label="Return to SilentIntent home screen"
+        style={navChipStyle}
+        onMouseEnter={navChipHover}
+        onMouseLeave={navChipUnhover}
+      >
+        ← Home
+      </button>
+      <button
+        type="button"
+        onClick={onGoIntro}
+        aria-label="Restart intro slides"
+        style={navChipStyle}
+        onMouseEnter={navChipHover}
+        onMouseLeave={navChipUnhover}
+      >
+        ↺ Intro
+      </button>
+      <span
+        style={{
+          marginLeft: 'auto',
+          fontFamily: "'IBM Plex Mono', monospace",
+          fontSize: '10px',
+          color: 'var(--color-text-tertiary)',
+          letterSpacing: '0.12em',
+          textTransform: 'uppercase',
+        }}
+      >
+        Live demo
+      </span>
+    </div>
+  );
+}
+
+const navChipStyle: React.CSSProperties = {
+  fontFamily: "'IBM Plex Mono', monospace",
+  fontSize: '11px',
+  letterSpacing: '0.1em',
+  textTransform: 'uppercase',
+  padding: '6px 12px',
+  backgroundColor: 'transparent',
+  color: 'var(--color-text-secondary)',
+  border: '1px solid var(--color-border-accent)',
+  borderRadius: '6px',
+  cursor: 'pointer',
+  transition: 'color 0.15s, border-color 0.15s',
+};
+
+function navChipHover(e: React.MouseEvent<HTMLButtonElement>) {
+  const el = e.currentTarget;
+  el.style.color = 'var(--color-treasury-gold)';
+  el.style.borderColor = 'var(--color-treasury-gold-dim)';
+}
+
+function navChipUnhover(e: React.MouseEvent<HTMLButtonElement>) {
+  const el = e.currentTarget;
+  el.style.color = 'var(--color-text-secondary)';
+  el.style.borderColor = 'var(--color-border-accent)';
 }
 
 function SectionLabel({ title, subtitle }: { title: string; subtitle: string }) {
