@@ -3,7 +3,9 @@
 const REPO_BASE = 'https://github.com/vishnumahesha/silentintent-sandbox/blob/main';
 
 const ARTIFACTS = [
+  { label: 'Midnight status', href: `${REPO_BASE}/docs/MIDNIGHT_STATUS.md` },
   { label: 'Circuit spec', href: `${REPO_BASE}/contracts/SilentIntentAuthorization.pseudo.compact.md` },
+  { label: 'Compact source', href: `${REPO_BASE}/contracts/SilentIntent.compact` },
   { label: 'Demo model verification', href: `${REPO_BASE}/scripts/verify-demo-model.mjs` },
   { label: 'README', href: `${REPO_BASE}/README.md` },
 ];
