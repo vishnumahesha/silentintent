@@ -11,6 +11,7 @@ import PublicVerifier from '@/components/PublicVerifier';
 import DemoControls from '@/components/DemoControls';
 import NarrativeStepper from '@/components/NarrativeStepper';
 import HeroTreasury from '@/components/HeroTreasury';
+import AppFooter from '@/components/AppFooter';
 
 const TREASURY_START = 1000000;
 const VENDOR_B_COST = 225000;
@@ -264,6 +265,8 @@ export default function Page() {
               : vendorB.proof ?? vendorA.proof ?? null
           }
         />
+
+        <AppFooter />
 
         <DemoControls
           onReset={resetDemo}

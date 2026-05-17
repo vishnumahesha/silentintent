@@ -47,31 +47,6 @@ function AnimatedBalance({ balanceCents }: { balanceCents: number }) {
   return <span>{displayed}</span>;
 }
 
-function Badge({ label, value }: { label: string; value: string }) {
-  return (
-    <span
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: '6px',
-        padding: '3px 8px',
-        borderRadius: '6px',
-        border: '1px solid var(--color-border)',
-        backgroundColor: 'var(--color-surface-raised)',
-        fontFamily: "'IBM Plex Mono', monospace",
-        fontSize: '10px',
-        color: 'var(--color-text-tertiary)',
-        letterSpacing: '0.04em',
-      }}
-    >
-      <span style={{ color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-        {label}
-      </span>
-      <span>{value}</span>
-    </span>
-  );
-}
-
 export default function TreasuryHeader({ balanceCents, lastDebit }: TreasuryHeaderProps) {
   return (
     <header
@@ -119,10 +94,6 @@ export default function TreasuryHeader({ balanceCents, lastDebit }: TreasuryHead
         >
           An AI agent can spend company money only if a private proof says the purchase follows policy.
         </span>
-        <div style={{ display: 'flex', gap: '6px', marginTop: '4px' }}>
-          <Badge label="Mode" value="Cached AI + mock proof" />
-          <Badge label="Network" value="Midnight local · mock proof layer" />
-        </div>
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
