@@ -52,7 +52,7 @@ export function buildBuyerPolicyPrivate(): BuyerPolicyPrivate {
     forbiddenTerm: 'campaign_metadata_reuse',
     urgencyHours: 72,
     priority: 'quality_over_volume',
-    intentSalt: 'salt:intent:dental_lead_v1',
+    intentSalt: 'intent_salt_demo_001',
   };
 }
 
@@ -60,10 +60,8 @@ export function buildBuyerPolicyPrivate(): BuyerPolicyPrivate {
 // Extracted offer facts (one per vendor)
 // ---------------------------------------------------------------------------
 
-const BRIGHTREACH_PROPOSAL_SOURCE =
-  'brightreach-data:dental-clinic-lead-list:v1';
-
-const CLEANLIST_PROPOSAL_SOURCE = 'cleanlist-pro:dental-clinic-leads:v1';
+const BRIGHTREACH_PROPOSAL_SOURCE = 'BrightReach proposal text';
+const CLEANLIST_PROPOSAL_SOURCE = 'CleanList proposal text';
 
 export function extractBrightReachFacts(): ExtractedOfferFacts {
   // `partner_enrichment` appears in BOTH credentials and
@@ -78,13 +76,13 @@ export function extractBrightReachFacts(): ExtractedOfferFacts {
     category: 'lead_data',
     credentials: [
       'freshness_verified',
-      'delivery_72hr',
+      'delivery_48hr',
       'high_volume',
       'partner_enrichment',
     ],
     detectedForbiddenTerms: ['campaign_metadata_reuse', 'partner_enrichment'],
     proposalHashSource: BRIGHTREACH_PROPOSAL_SOURCE,
-    offerSalt: 'salt:offer:brightreach:v1',
+    offerSalt: 'offer_salt_brightreach_001',
   };
 }
 
@@ -102,7 +100,7 @@ export function extractCleanListFacts(): ExtractedOfferFacts {
     ],
     detectedForbiddenTerms: [],
     proposalHashSource: CLEANLIST_PROPOSAL_SOURCE,
-    offerSalt: 'salt:offer:cleanlist:v1',
+    offerSalt: 'offer_salt_cleanlist_001',
   };
 }
 

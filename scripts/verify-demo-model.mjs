@@ -18,7 +18,7 @@ const POLICY = {
   forbiddenTerm: 'campaign_metadata_reuse',
   urgencyHours: 72,
   priority: 'quality_over_volume',
-  intentSalt: 'salt:intent:dental_lead_v1',
+  intentSalt: 'intent_salt_demo_001',
 };
 const POLICY_ID = 'pol_dental_lead_v1';
 
@@ -29,13 +29,13 @@ const VENDOR_A = {
   category: 'lead_data',
   credentials: [
     'freshness_verified',
-    'delivery_72hr',
+    'delivery_48hr',
     'high_volume',
     'partner_enrichment',
   ],
   detectedForbiddenTerms: ['campaign_metadata_reuse', 'partner_enrichment'],
-  proposalHashSource: 'brightreach-data:dental-clinic-lead-list:v1',
-  offerSalt: 'salt:offer:brightreach:v1',
+  proposalHashSource: 'BrightReach proposal text',
+  offerSalt: 'offer_salt_brightreach_001',
 };
 
 const VENDOR_B = {
@@ -50,8 +50,8 @@ const VENDOR_B = {
     'no_cross_client_modeling',
   ],
   detectedForbiddenTerms: [],
-  proposalHashSource: 'cleanlist-pro:dental-clinic-leads:v1',
-  offerSalt: 'salt:offer:cleanlist:v1',
+  proposalHashSource: 'CleanList proposal text',
+  offerSalt: 'offer_salt_cleanlist_001',
 };
 
 const CREDENTIAL_VECTOR_LENGTH = 4;
