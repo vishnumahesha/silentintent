@@ -12,7 +12,8 @@ single source of truth for what is real vs mocked in this sandbox.
 | Witness adapter | **Implemented** | `lib/witnessAdapter.ts` produces the full `AuthorizationWitness` and all four commitments from typed inputs. |
 | Proof types | **Implemented** | `lib/proofTypes.ts` defines `BuyerPolicyPrivate`, `ExtractedOfferFacts`, `AuthorizationWitness`, `PublicAuthorizationOutput`, `AuthorizationProofResult`. |
 | Mock proof | **Implemented** | `lib/mockProof.ts` evaluates the 4 constraints against the witness and emits the public output. Deterministic. |
-| Compact contract | **Attempted, not compiled** | `contracts/SilentIntent.compact` exists as a minimal best-effort source. Compact CLI not installed locally; see `MIDNIGHT_TOOLING_CHECK.md`. |
+| Compact contract (authorization, this sandbox) | **Attempted, not compiled** | `contracts/SilentIntent.compact` exists as a minimal best-effort source. Compact CLI not installed locally; see `MIDNIGHT_TOOLING_CHECK.md`. |
+| Compact contract (intent-evaluation, team branch) | **Compiled** | A parallel intent-evaluation contract on the team repo's `alim_compact` branch compiled with `compiler 0.31.0` / `language 0.23.0` / `runtime 0.16.0`. Source + compiler output imported here under `contracts/intent-evaluation/`. Not wired into the sandbox runtime. |
 | Circuit specification | **Documented** | `contracts/SilentIntentAuthorization.pseudo.compact.md` covers all 8 constraints + ledger sketch. |
 | Proof server | **Not tested** | No Docker locally; no proof server image pulled. |
 | Local devnet | **Not wired** | |
@@ -69,8 +70,13 @@ In rough order, smallest dependency to largest:
    - Iterate on syntax against the spec in
      `contracts/SilentIntentAuthorization.pseudo.compact.md` when the
      compiler complains.
-   - Move the row "Compact contract" above from
-     `Attempted, not compiled` to `Compiled`.
+   - Reference: `contracts/intent-evaluation/SilentIntent.compact` is
+     the team's already-compiling intent-evaluation contract; mirror
+     its pragma + syntax patterns (e.g. `pragma language_version >= 0.14;`,
+     witness/circuit declarations) to get the authorization contract
+     past the compiler with minimum diff.
+   - Move the row "Compact contract (authorization, this sandbox)"
+     above from `Attempted, not compiled` to `Compiled`.
 3. **Adapt `lib/witnessAdapter.ts`** to the real Compact witness
    binding (likely a `*Witnesses` JS module emitted by `compactc`).
    - Replace `demoHash` calls with `persistentHash` from the Midnight

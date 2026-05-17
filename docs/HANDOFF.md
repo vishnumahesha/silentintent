@@ -131,3 +131,26 @@ npm run verify:demo
 ```
 
 If either fails, fix the failure before merging into the team repo.
+
+## What was imported from the team repo
+
+The `integrate-team-work` branch in this sandbox brought across two
+small, self-contained slices from the team repo so the sandbox can
+stand on its own at submission time without reaching into the team
+repo at runtime.
+
+| Import | Source branch | Sandbox path | Phase |
+|---|---|---|---|
+| Procurement policy JSON, raw vendor proposals, extracted facts JSON | `data-ai-setup` (Shreyas) | `data/` | 2 |
+| Mapping doc tying the imported data files to the witness adapter | — | `docs/AI_EXTRACTION.md` | 2 |
+| Intent-evaluation Compact source + compiler-info | `alim_compact` (Alim) | `contracts/intent-evaluation/` | 3 |
+| Status row split + Compact next-step pointer to the team's compiled source | — | `docs/MIDNIGHT_STATUS.md` (edit) | 3 |
+
+Frontend imports from `Martin-branch` were skipped — the sandbox
+components were already more developed than the team versions. The
+`vishnu-backup-pre-revert` branch was skipped — it is the earlier
+draft that became this sandbox.
+
+None of these imports added runtime dependencies, env-var
+requirements, or live-API calls. `npm run build` and
+`npm run verify:demo` pass at every commit on `integrate-team-work`.

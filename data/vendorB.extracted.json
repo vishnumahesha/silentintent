@@ -1,0 +1,14 @@
+{
+    "vendorId": "vendor_B",
+    "vendorName": "CleanList Pro",
+    "priceCents": 225000,
+    "category": "lead_data",
+    "credentials": [
+        "freshness_verified",
+        "licensed_sources",
+        "opt_out_screening",
+        "audit_logs"
+    ],
+    "forbiddenTermsDetected": [],
+    "summary": "More expensive and slower, but explicitly siloed by engagement with no partner enrichment or resale."
+}

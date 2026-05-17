@@ -211,6 +211,29 @@ and [`docs/DEMO_FLOW.md`](docs/DEMO_FLOW.md) for the manual demo flow.
 
 ---
 
+## Team contributions
+
+- **Vishnu**: PM/demo, product framing, final integration.
+- **Alim**: authored the intent-evaluation Compact contract on the team
+  branch and ran it through the Compact compiler
+  (`compiler 0.31.0` / `language 0.23.0` / `runtime 0.16.0`). Source
+  and compiler output imported under `contracts/intent-evaluation/`.
+- **Shreyas**: vendor proposal text, AI extraction schema, and the
+  cached-fallback extraction path on the team branch. Provenance
+  artifacts imported under `data/` with mapping notes in
+  [`docs/AI_EXTRACTION.md`](docs/AI_EXTRACTION.md).
+- **Martin** (and **Tyler**): early frontend scaffolding on the team
+  branch (superseded by the sandbox UI in this repo).
+- **Nako**: implementation support.
+- **ThunderRoar**: implementation support.
+
+Inclusion in the imported artifacts means the work was committed to a
+team branch and brought across into this sandbox. The sandbox UI,
+witness adapter, mock proof model, verify script, and authorization
+Compact source remain sandbox-original.
+
+---
+
 ### About this repo
 
 This is the public **sandbox** — design and frontend experiments,

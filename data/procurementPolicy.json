@@ -1,0 +1,11 @@
+{
+    "dealId": "deal_dental_leads_001",
+    "policyId": "policy_no_resale_v1",
+    "agentTreasuryId": "treasury_marketing_q2_2026",
+    "visibleGoal": "Acquire dental clinic lead data for Q2 outreach campaign",
+    "maxPriceCents": 250000,
+    "requiredCategory": "lead_data",
+    "requiredCredential": "freshness_verified",
+    "forbiddenTerm": "campaign_metadata_reuse",
+    "intentSalt": "intent_salt_demo_001"
+}

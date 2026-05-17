@@ -31,6 +31,125 @@ const PROOF_STEPS: { key: StepKey; label: string }[] = [
   { key: 'disclose', label: 'Disclose authorization result only' },
 ];
 
+type ChecklistRowKey = 'price' | 'category' | 'credential' | 'forbidden' | 'disclose';
+
+const PROOF_CHECKLIST: { key: ChecklistRowKey; label: string }[] = [
+  { key: 'price', label: 'Offer price is below hidden max budget' },
+  { key: 'category', label: 'Offer category matches hidden required category' },
+  { key: 'credential', label: 'Required freshness credential is present' },
+  { key: 'forbidden', label: 'Forbidden reuse term is absent' },
+  { key: 'disclose', label: 'Only selected outputs are disclosed' },
+];
+
+function ProofChecklist({ latestProof }: { latestProof: ProofResult | null }) {
+  const checkMap = new Map<string, string>();
+  if (latestProof) {
+    for (const c of latestProof.checks) checkMap.set(c.id, c.status);
+  }
+
+  function stateFor(key: ChecklistRowKey): StepState {
+    if (!latestProof) return 'idle';
+    if (key === 'disclose') return 'pass';
+    const status = checkMap.get(key);
+    if (status === 'pass') return 'pass';
+    if (status === 'fail') return 'fail';
+    return 'pass';
+  }
+
+  return (
+    <div
+      style={{
+        padding: '16px 18px',
+        backgroundColor: 'var(--color-bg)',
+        borderRadius: '10px',
+        border: '1px solid var(--color-border-accent)',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '10px',
+      }}
+    >
+      <span
+        style={{
+          fontFamily: "'IBM Plex Mono', monospace",
+          fontSize: '11px',
+          color: 'var(--color-text-primary)',
+          letterSpacing: '0.14em',
+          textTransform: 'uppercase',
+          fontWeight: 600,
+        }}
+      >
+        What the proof checks
+      </span>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        {PROOF_CHECKLIST.map((row) => {
+          const state = stateFor(row.key);
+          const isFail = state === 'fail';
+          const isPass = state === 'pass';
+          const marker = isFail ? '✕' : isPass ? '✓' : '·';
+          const markerColor = isFail
+            ? 'var(--color-reject)'
+            : isPass
+            ? 'var(--color-success)'
+            : 'var(--color-text-tertiary)';
+          const textColor = isFail
+            ? 'var(--color-text-primary)'
+            : 'var(--color-text-secondary)';
+          return (
+            <div
+              key={row.key}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+              }}
+            >
+              <span
+                aria-hidden
+                style={{
+                  width: '14px',
+                  textAlign: 'center',
+                  fontFamily: "'IBM Plex Mono', monospace",
+                  fontSize: '13px',
+                  color: markerColor,
+                  flexShrink: 0,
+                  lineHeight: 1,
+                }}
+              >
+                {marker}
+              </span>
+              <span
+                style={{
+                  fontFamily: "'IBM Plex Sans', sans-serif",
+                  fontSize: '12px',
+                  color: textColor,
+                  lineHeight: 1.5,
+                  letterSpacing: '0.01em',
+                }}
+              >
+                {row.label}
+              </span>
+              {isFail && (
+                <span
+                  style={{
+                    marginLeft: 'auto',
+                    fontFamily: "'IBM Plex Mono', monospace",
+                    fontSize: '10px',
+                    color: 'var(--color-reject)',
+                    letterSpacing: '0.1em',
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  Fail
+                </span>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 type StepState = 'idle' | 'running' | 'pass' | 'fail';
 
 function outcomesFromProof(proof: ProofResult): StepState[] {
@@ -313,18 +432,48 @@ function DisclosureEntry({
           >
             {entry.status}
           </span>
-          <span
-            style={{
-              fontFamily: "'IBM Plex Sans', sans-serif",
-              fontSize: isLatest ? '13px' : '12px',
-              color: 'var(--color-text-secondary)',
-              lineHeight: 1.4,
-            }}
-          >
-            {isAuthorized && entry.debitCents
-              ? `Treasury debit: −$${(entry.debitCents / 100).toLocaleString('en-US')} · Price band: ${entry.priceBand ?? '—'}`
-              : 'Treasury unchanged'}
-          </span>
+          {(() => {
+            const failedCheck = entry.checks.find((c) => c.status === 'fail');
+            const reason = isAuthorized
+              ? 'All hidden policy checks passed.'
+              : failedCheck?.id === 'forbidden'
+              ? 'Forbidden reuse term detected.'
+              : failedCheck?.id === 'price'
+              ? 'Offer price exceeded hidden max budget.'
+              : failedCheck?.id === 'credential'
+              ? 'Required credential missing from offer.'
+              : failedCheck?.id === 'category'
+              ? 'Offer category did not match required category.'
+              : 'Hidden policy check failed.';
+            const treasuryLine = isAuthorized && entry.debitCents
+              ? `Treasury debit authorized: −$${(entry.debitCents / 100).toLocaleString('en-US')}.`
+              : 'Treasury unchanged.';
+            return (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                <span
+                  style={{
+                    fontFamily: "'IBM Plex Sans', sans-serif",
+                    fontSize: isLatest ? '13px' : '12px',
+                    color: 'var(--color-text-primary)',
+                    lineHeight: 1.4,
+                    fontWeight: 500,
+                  }}
+                >
+                  {reason}
+                </span>
+                <span
+                  style={{
+                    fontFamily: "'IBM Plex Sans', sans-serif",
+                    fontSize: isLatest ? '13px' : '12px',
+                    color: 'var(--color-text-secondary)',
+                    lineHeight: 1.4,
+                  }}
+                >
+                  {treasuryLine}
+                </span>
+              </div>
+            );
+          })()}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           {isLatest && (
@@ -404,29 +553,16 @@ function DisclosureEntry({
 
       <div
         style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-          gap: '12px',
-          paddingTop: '4px',
+          paddingTop: '8px',
           borderTop: '1px solid var(--color-border)',
         }}
       >
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          <span style={labelStyle}>Disclosed</span>
-          <span style={discreteText}>
-            {isAuthorized
-              ? 'status, price band, commitments'
-              : 'status, deal ID, commitments'}
-          </span>
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          <span style={labelStyle}>Hidden</span>
-          <span style={discreteText}>
-            {isAuthorized
-              ? 'exact policy, vendor terms, raw witnesses'
-              : 'exact budget, forbidden rule, vendor terms'}
-          </span>
-        </div>
+        <span style={discreteText}>
+          <span style={{ color: 'var(--color-text-tertiary)' }}>Public saw only </span>
+          {isAuthorized
+            ? 'status + price band + commitments.'
+            : 'status + commitments.'}
+        </span>
       </div>
     </motion.div>
   );
@@ -477,6 +613,8 @@ export default function PublicVerifier({
           Disclose by exception
         </span>
       </div>
+
+      <ProofChecklist latestProof={latestProof} />
 
       <ProofTimeline analyzing={analyzing} latestProof={latestProof} />
 
