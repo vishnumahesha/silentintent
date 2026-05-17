@@ -316,14 +316,14 @@ function DisclosureEntry({
           <span
             style={{
               fontFamily: "'IBM Plex Sans', sans-serif",
-              fontSize: '12px',
+              fontSize: isLatest ? '13px' : '12px',
               color: 'var(--color-text-secondary)',
               lineHeight: 1.4,
             }}
           >
-            {isAuthorized
-              ? 'Treasury debit authorized'
-              : 'Hidden policy violation. Treasury unchanged.'}
+            {isAuthorized && entry.debitCents
+              ? `Treasury debit: −$${(entry.debitCents / 100).toLocaleString('en-US')} · Price band: ${entry.priceBand ?? '—'}`
+              : 'Treasury unchanged'}
           </span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -414,13 +414,17 @@ function DisclosureEntry({
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
           <span style={labelStyle}>Disclosed</span>
           <span style={discreteText}>
-            status, deal ID, price band, treasury action, commitments
+            {isAuthorized
+              ? 'status, price band, commitments'
+              : 'status, deal ID, commitments'}
           </span>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
           <span style={labelStyle}>Hidden</span>
           <span style={discreteText}>
-            exact budget, forbidden rule, vendor terms, salts, raw witnesses
+            {isAuthorized
+              ? 'exact policy, vendor terms, raw witnesses'
+              : 'exact budget, forbidden rule, vendor terms'}
           </span>
         </div>
       </div>

@@ -2,14 +2,15 @@
 
 import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { EyeIcon, EyeSlashIcon, InfoIcon } from '@phosphor-icons/react';
+import { EyeIcon, EyeSlashIcon, InfoIcon, ArrowDownIcon } from '@phosphor-icons/react';
 
-const AGENT_SEES = [
-  'Vendor names and categories',
-  'Published market rates',
-  'Commitment hashes (on-chain)',
-  'Authorization result',
-  'Proof hash (public verifier)',
+const PIPELINE_STEPS: { label: string; sample: string; flagOnReject?: boolean }[] = [
+  { label: 'Vendor proposal text', sample: '"…freshness verified… 48-hour delivery…"' },
+  { label: 'Extracted price', sample: 'price_cents: …' },
+  { label: 'Extracted category', sample: 'category: …' },
+  { label: 'Extracted credentials', sample: 'credentials: […]' },
+  { label: 'Detected forbidden terms', sample: 'forbidden_terms: […]', flagOnReject: true },
+  { label: 'Proof inputs ready', sample: '→ Midnight authorization circuit' },
 ];
 
 const AGENT_CANNOT_SEE = [
@@ -243,48 +244,7 @@ export default function AIExtractionPanel({ activeVendor }: AIExtractionPanelPro
         {activeVendor ? (
           <ExtractedFacts activeVendor={activeVendor} />
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <EyeIcon size={16} weight="regular" color="var(--color-text-tertiary)" />
-              <span
-                style={{
-                  fontFamily: "'IBM Plex Sans', sans-serif",
-                  fontSize: '12px',
-                  color: 'var(--color-text-secondary)',
-                  fontWeight: 500,
-                }}
-              >
-                Agent Sees
-              </span>
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {AGENT_SEES.map((item) => (
-                <div
-                  key={item}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    padding: '8px 12px',
-                    backgroundColor: 'rgba(61,122,92,0.06)',
-                    border: '1px solid rgba(61,122,92,0.15)',
-                    borderRadius: '8px',
-                  }}
-                >
-                  <EyeIcon size={16} weight="regular" color="var(--color-text-tertiary)" />
-                  <span
-                    style={{
-                      fontFamily: "'IBM Plex Sans', sans-serif",
-                      fontSize: '12px',
-                      color: 'var(--color-text-secondary)',
-                    }}
-                  >
-                    {item}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
+          <PipelinePreview />
         )}
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
