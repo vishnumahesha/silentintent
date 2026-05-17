@@ -47,7 +47,8 @@
 - [ ] Repo link added
 - [ ] Video link added
 - [ ] 6 screenshots uploaded
-- [ ] Team members tagged
+- [ ] Team members tagged (cross-check against the "Team contributions"
+      section in `README.md` so on-Devpost order matches repo order)
 
 ## Repository
 
