@@ -207,6 +207,11 @@ export default function Page() {
           vendorBStatus={vendorB.status}
         />
 
+        <SectionLabel
+          title="Private buyer view"
+          subtitle="only the company agent sees this"
+        />
+
         <div
           style={{
             display: 'grid',
@@ -262,6 +267,11 @@ export default function Page() {
 
         <AIExtractionPanel activeVendor={activeVendor} />
 
+        <SectionLabel
+          title="Public verifier"
+          subtitle="visible to everyone"
+        />
+
         <PublicVerifier
           log={publicLog}
           resetKey={resetKey}
@@ -287,6 +297,51 @@ export default function Page() {
           vendorBStatus={vendorB.status}
         />
       </main>
+    </div>
+  );
+}
+
+function SectionLabel({ title, subtitle }: { title: string; subtitle: string }) {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'baseline',
+        gap: '14px',
+        paddingTop: '4px',
+        paddingBottom: '2px',
+      }}
+    >
+      <span
+        style={{
+          fontFamily: "'IBM Plex Mono', monospace",
+          fontSize: '12px',
+          fontWeight: 600,
+          color: 'var(--color-treasury-gold)',
+          letterSpacing: '0.18em',
+          textTransform: 'uppercase',
+        }}
+      >
+        {title}
+      </span>
+      <span
+        style={{
+          fontFamily: "'IBM Plex Sans', sans-serif",
+          fontSize: '11px',
+          color: 'var(--color-text-tertiary)',
+          letterSpacing: '0.08em',
+          textTransform: 'uppercase',
+        }}
+      >
+        — {subtitle}
+      </span>
+      <div
+        style={{
+          flex: 1,
+          height: '1px',
+          backgroundColor: 'var(--color-border)',
+        }}
+      />
     </div>
   );
 }

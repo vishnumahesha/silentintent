@@ -106,7 +106,7 @@ function TruthBadge() {
               lineHeight: '1.6',
             }}
           >
-            v1 proves the structured offer facts satisfy the policy. Production would use vendor-signed offer artifacts to remove this assumption.
+            The proof checks structured values, not the semantic truth of the original proposal. Production would use vendor-signed offer artifacts to remove this assumption.
           </span>
         </div>
       )}

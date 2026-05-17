@@ -77,9 +77,23 @@ export default function AppFooter() {
         justifyContent: 'space-between',
       }}
     >
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-        <Badge label="Mode" value="Cached AI + mock proof" />
-        <Badge label="Network" value="Midnight local · mock proof layer" />
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+          <Badge label="Mode" value="Cached AI + mock proof" />
+          <Badge label="Network" value="Midnight local · mock proof layer" />
+        </div>
+        <span
+          style={{
+            fontFamily: "'IBM Plex Sans', sans-serif",
+            fontSize: '11px',
+            color: 'var(--color-text-tertiary)',
+            letterSpacing: '0.02em',
+            lineHeight: 1.5,
+            maxWidth: '480px',
+          }}
+        >
+          Demo uses cached extraction and mock proof model unless live Compact proof is enabled.
+        </span>
       </div>
       <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '12px' }}>
         <span
