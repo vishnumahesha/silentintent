@@ -17,6 +17,7 @@ interface VendorCardProps {
   priceLabel: string;
   proposalText?: string;
   summaryLine?: string;
+  descriptiveLine?: string;
   chips?: Chip[];
   authorizeLabel?: string;
   surfaceLabel?: 'Surface-best offer' | 'Compliant offer';
@@ -176,6 +177,7 @@ export default function VendorCard({
   priceLabel,
   proposalText,
   summaryLine,
+  descriptiveLine,
   chips,
   authorizeLabel,
   surfaceLabel,
@@ -330,6 +332,21 @@ export default function VendorCard({
           }}
         >
           {summaryLine}
+        </p>
+      )}
+
+      {descriptiveLine && (
+        <p
+          style={{
+            fontFamily: "'IBM Plex Sans', sans-serif",
+            fontSize: '12px',
+            color: 'var(--color-text-tertiary)',
+            lineHeight: 1.5,
+            margin: 0,
+            paddingTop: '4px',
+          }}
+        >
+          {descriptiveLine}
         </p>
       )}
 

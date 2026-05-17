@@ -66,7 +66,7 @@ export default function ProductMode() {
   const [forbiddenTerm, setForbiddenTerm] = useState(DEFAULT_POLICY.forbiddenTerm);
   const [treasury, setTreasury] = useState(String(DEFAULT_POLICY.treasury));
 
-  const [offer, setOffer] = useState<OfferDraft>(EMPTY_OFFER);
+  const [offer, setOffer] = useState<OfferDraft>(BRIGHTREACH_EXAMPLE);
 
   const [result, setResult] = useState<AuthorizationProofResult | null>(null);
   const [running, setRunning] = useState(false);
@@ -341,6 +341,16 @@ type PolicyCardProps = {
 function PrivatePolicyCard(props: PolicyCardProps) {
   return (
     <SectionCard accent="gold" label="Private policy" subLabel="visible only to company agent">
+      <span
+        style={{
+          fontFamily: "'IBM Plex Sans', sans-serif",
+          fontSize: '12px',
+          color: 'var(--color-text-tertiary)',
+          lineHeight: 1.5,
+        }}
+      >
+        Only the company agent sees these values. They are not included in the public receipt.
+      </span>
       <TextField
         label="Max budget (USD)"
         type="number"

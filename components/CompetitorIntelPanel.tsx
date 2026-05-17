@@ -1,258 +1,113 @@
 'use client';
 
-import { WarningIcon, ShieldCheckIcon } from '@phosphor-icons/react';
-
-const LEAKED_POLICY = [
-  { k: 'Max budget', v: '$2,500' },
-  { k: 'Required', v: 'freshness verified' },
-  { k: 'Forbidden', v: 'campaign metadata reuse' },
-  { k: 'Urgency', v: '72 hours' },
-  { k: 'Priority', v: 'quality > volume' },
+const IF_LEAKED = [
+  'Max budget',
+  'Required credential',
+  'Forbidden reuse rule',
+  'Urgency',
 ];
 
-const EXPLOIT_MOVES = [
-  'Undercut on price to look like the obvious winner',
-  'Advertise freshness prominently in the headline',
-  'Bury reuse clause inside "partner enrichment"',
+const WITH_SILENTINTENT = [
+  'Approved/rejected',
+  'Price band',
+  'Commitments',
+  'Treasury action',
 ];
-
-const PUBLIC_OUTPUTS = [
-  { k: 'Status', v: 'AUTHORIZED / REJECTED' },
-  { k: 'Price band', v: '$2k-$2.5k (only if authorized)' },
-  { k: 'Deal ID', v: '0x⋯' },
-  { k: 'Intent commitment', v: '0x⋯' },
-  { k: 'Offer commitment', v: '0x⋯' },
-];
-
-const STAYS_PRIVATE = [
-  'Exact budget',
-  'Hidden constraints',
-  'Vendor full terms',
-  'Agent reasoning trace',
-];
-
-function SectionHeader({
-  icon,
-  title,
-  subtitle,
-  tone,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  subtitle: string;
-  tone: 'danger' | 'safe';
-}) {
-  const color = tone === 'danger' ? 'var(--color-reject)' : 'var(--color-success)';
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-        <span style={{ color, display: 'inline-flex' }}>{icon}</span>
-        <span
-          style={{
-            fontFamily: "'IBM Plex Mono', monospace",
-            fontSize: '12px',
-            color: 'var(--color-text-primary)',
-            fontWeight: 600,
-            letterSpacing: '0.04em',
-            textTransform: 'uppercase',
-          }}
-        >
-          {title}
-        </span>
-      </div>
-      <span
-        style={{
-          fontFamily: "'IBM Plex Sans', sans-serif",
-          fontSize: '11px',
-          color: 'var(--color-text-tertiary)',
-          letterSpacing: '0.02em',
-        }}
-      >
-        {subtitle}
-      </span>
-    </div>
-  );
-}
-
-function KVRow({ k, v, tone }: { k: string; v: string; tone: 'danger' | 'safe' }) {
-  const valueColor =
-    tone === 'danger' ? 'var(--color-reject)' : 'var(--color-success)';
-  return (
-    <div
-      style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: '6px 10px',
-        borderRadius: '6px',
-        backgroundColor:
-          tone === 'danger' ? 'rgba(122,61,61,0.08)' : 'rgba(61,122,92,0.06)',
-        border: `1px solid ${
-          tone === 'danger' ? 'rgba(122,61,61,0.25)' : 'rgba(61,122,92,0.2)'
-        }`,
-      }}
-    >
-      <span
-        style={{
-          fontFamily: "'IBM Plex Sans', sans-serif",
-          fontSize: '11px',
-          color: 'var(--color-text-tertiary)',
-          letterSpacing: '0.04em',
-        }}
-      >
-        {k}
-      </span>
-      <span
-        style={{
-          fontFamily: "'IBM Plex Mono', monospace",
-          fontSize: '12px',
-          color: valueColor,
-          letterSpacing: '0.02em',
-        }}
-      >
-        {v}
-      </span>
-    </div>
-  );
-}
-
-function BulletList({ items, tone }: { items: string[]; tone: 'danger' | 'safe' }) {
-  const color = tone === 'danger' ? 'var(--color-reject)' : 'var(--color-success)';
-  return (
-    <ul style={{ display: 'flex', flexDirection: 'column', gap: '6px', listStyle: 'none' }}>
-      {items.map((item) => (
-        <li
-          key={item}
-          style={{
-            display: 'flex',
-            gap: '8px',
-            fontFamily: "'IBM Plex Sans', sans-serif",
-            fontSize: '12px',
-            color: 'var(--color-text-secondary)',
-            lineHeight: 1.5,
-          }}
-        >
-          <span style={{ color, flexShrink: 0 }}>—</span>
-          <span>{item}</span>
-        </li>
-      ))}
-    </ul>
-  );
-}
 
 export default function CompetitorIntelPanel() {
   return (
     <div
       style={{
         backgroundColor: 'var(--color-surface)',
-        borderRadius: '14px',
-        padding: '24px',
+        borderRadius: '12px',
+        padding: '16px 18px',
         border: '1px solid var(--color-border)',
         boxShadow: 'inset 0 1px 0 0 rgba(255,255,255,0.035), 0 1px 3px rgba(0,0,0,0.4)',
         display: 'flex',
         flexDirection: 'column',
-        gap: '20px',
+        gap: '12px',
       }}
     >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-          <span
-            style={{
-              fontFamily: "'Space Grotesk', sans-serif",
-              color: 'var(--color-text-primary)',
-              fontSize: '18px',
-              fontWeight: 600,
-              letterSpacing: '-0.005em',
-              lineHeight: 1.25,
-            }}
-          >
-            Why leaking policy is dangerous
-          </span>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+        <span
+          style={{
+            fontFamily: "'IBM Plex Mono', monospace",
+            fontSize: '12px',
+            fontWeight: 600,
+            color: 'var(--color-text-primary)',
+            letterSpacing: '0.12em',
+            textTransform: 'uppercase',
+          }}
+        >
+          Why hidden policy matters
+        </span>
+        <span
+          style={{
+            fontFamily: "'IBM Plex Sans', sans-serif",
+            fontSize: '11px',
+            color: 'var(--color-text-tertiary)',
+            lineHeight: 1.5,
+          }}
+        >
+          If vendors learn the agent's budget and deal-breakers, they can shape offers around the policy instead of competing honestly.
+        </span>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
           <span
             style={{
               fontFamily: "'IBM Plex Mono', monospace",
               fontSize: '10px',
-              color: 'var(--color-text-tertiary)',
-              letterSpacing: '0.14em',
+              color: 'var(--color-reject)',
+              letterSpacing: '0.1em',
               textTransform: 'uppercase',
+              fontWeight: 600,
             }}
           >
-            Leak simulation
+            If Policy Leaks
           </span>
-        </div>
-      </div>
-
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          <SectionHeader
-            tone="danger"
-            icon={<WarningIcon size={14} weight="fill" />}
-            title="If the policy leaks"
-            subtitle="Every vendor that scrapes the chain learns:"
-          />
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            {LEAKED_POLICY.map((row) => (
-              <KVRow key={row.k} k={row.k} v={row.v} tone="danger" />
-            ))}
-          </div>
-          <div
-            style={{
-              paddingTop: '10px',
-              borderTop: '1px solid var(--color-border)',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '8px',
-            }}
-          >
+          {IF_LEAKED.map((item) => (
             <span
+              key={item}
               style={{
                 fontFamily: "'IBM Plex Sans', sans-serif",
                 fontSize: '11px',
-                color: 'var(--color-text-tertiary)',
-                letterSpacing: '0.06em',
-                textTransform: 'uppercase',
+                color: 'var(--color-text-secondary)',
+                lineHeight: 1.5,
               }}
             >
-              How BrightReach exploits this
+              • {item}
             </span>
-            <BulletList items={EXPLOIT_MOVES} tone="danger" />
-          </div>
+          ))}
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          <SectionHeader
-            tone="safe"
-            icon={<ShieldCheckIcon size={14} weight="fill" />}
-            title="What SilentIntent discloses"
-            subtitle="The only public outputs after a proof:"
-          />
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            {PUBLIC_OUTPUTS.map((row) => (
-              <KVRow key={row.k} k={row.k} v={row.v} tone="safe" />
-            ))}
-          </div>
-          <div
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          <span
             style={{
-              paddingTop: '10px',
-              borderTop: '1px solid var(--color-border)',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '8px',
+              fontFamily: "'IBM Plex Mono', monospace",
+              fontSize: '10px',
+              color: 'var(--color-success)',
+              letterSpacing: '0.1em',
+              textTransform: 'uppercase',
+              fontWeight: 600,
             }}
           >
+            With SilentIntent
+          </span>
+          {WITH_SILENTINTENT.map((item) => (
             <span
+              key={item}
               style={{
                 fontFamily: "'IBM Plex Sans', sans-serif",
                 fontSize: '11px',
-                color: 'var(--color-text-tertiary)',
-                letterSpacing: '0.06em',
-                textTransform: 'uppercase',
+                color: 'var(--color-text-secondary)',
+                lineHeight: 1.5,
               }}
             >
-              What stays private
+              • {item}
             </span>
-            <BulletList items={STAYS_PRIVATE} tone="safe" />
-          </div>
+          ))}
         </div>
       </div>
     </div>

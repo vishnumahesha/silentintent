@@ -7,7 +7,6 @@ import HiddenPolicyPanel from '@/components/HiddenPolicyPanel';
 import CompetitorIntelPanel from '@/components/CompetitorIntelPanel';
 import VendorCard, { type VendorStatus } from '@/components/VendorCard';
 import AIExtractionPanel from '@/components/AIExtractionPanel';
-import PublicVerifier from '@/components/PublicVerifier';
 import GuidedDemoControls from '@/components/GuidedDemoControls';
 import NarrativeStepper from '@/components/NarrativeStepper';
 import HeroTreasury from '@/components/HeroTreasury';
@@ -18,7 +17,7 @@ import HomeScreen from '@/components/HomeScreen';
 import IntroSlides from '@/components/IntroSlides';
 import ProductMode from '@/components/ProductMode';
 import WhyNotPromptBox from '@/components/WhyNotPromptBox';
-import CompactPublicReceipt from '@/components/CompactPublicReceipt';
+import PublicReceipt from '@/components/PublicReceipt';
 
 const TREASURY_START = 1000000;
 const VENDOR_B_COST = 225000;
@@ -364,6 +363,7 @@ function GuidedDemoView({
             priceLabel="$1,900"
             proposalText={VENDOR_A_PROPOSAL}
             summaryLine="Verified dental clinic lead data, partner enrichment included"
+            descriptiveLine="Cheaper and faster, but risky after extraction."
             chips={VENDOR_A_CHIPS}
             surfaceLabel="Surface-best offer"
             authorizeLabel="Attempt Spend Authorization"
@@ -381,6 +381,7 @@ function GuidedDemoView({
             priceLabel="$2,250"
             proposalText={VENDOR_B_PROPOSAL}
             summaryLine="Verified dental clinic lead data, customer-siloed delivery"
+            descriptiveLine="More expensive, but policy-safe."
             chips={VENDOR_B_CHIPS}
             surfaceLabel="Compliant offer"
             priceCents={VENDOR_B_PRICE_CENTS}
@@ -400,17 +401,10 @@ function GuidedDemoView({
           subtitle="visible to everyone"
         />
 
-        <CompactPublicReceipt
+        <PublicReceipt
           latestProof={latestProof}
           isLatestAuthorized={isLatestAuthorized}
           analyzing={isAnalyzing}
-        />
-
-        <PublicVerifier
-          log={publicLog}
-          resetKey={resetKey}
-          analyzing={isAnalyzing}
-          latestProof={latestProof}
         />
 
         <p
