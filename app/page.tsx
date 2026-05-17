@@ -131,7 +131,7 @@ export default function Page() {
 
       <main
         style={{
-          padding: '32px 24px',
+          padding: '32px 24px 200px',
           flex: 1,
           display: 'flex',
           flexDirection: 'column',

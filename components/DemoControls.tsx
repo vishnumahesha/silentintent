@@ -116,12 +116,21 @@ export default function DemoControls({
   return (
     <div
       style={{
+        position: 'fixed',
+        right: '20px',
+        bottom: '20px',
+        zIndex: 50,
         display: 'flex',
         flexDirection: 'column',
-        gap: '12px',
-        padding: '16px 0',
-        borderTop: '1px solid var(--color-border)',
-        marginTop: '8px',
+        gap: '10px',
+        padding: '14px 16px',
+        maxWidth: 'min(640px, calc(100vw - 40px))',
+        borderRadius: '12px',
+        backgroundColor: 'rgba(11, 13, 17, 0.92)',
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
+        border: '1px solid var(--color-border-accent)',
+        boxShadow: '0 12px 32px rgba(0,0,0,0.55), inset 0 1px 0 0 rgba(255,255,255,0.04)',
       }}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
@@ -129,9 +138,10 @@ export default function DemoControls({
           style={{
             fontFamily: "'IBM Plex Mono', monospace",
             fontSize: '11px',
-            color: 'var(--color-text-tertiary)',
-            letterSpacing: '0.06em',
+            color: 'var(--color-text-secondary)',
+            letterSpacing: '0.08em',
             textTransform: 'uppercase',
+            fontWeight: 600,
           }}
         >
           Demo controls
@@ -172,7 +182,6 @@ export default function DemoControls({
           disabled={!bApproved || running}
           variant="approve"
         />
-        <div style={{ flex: 1, minWidth: '12px' }} />
         <ControlButton
           label={running ? 'Running…' : 'Run Full Demo'}
           onClick={() => setRunning(true)}
