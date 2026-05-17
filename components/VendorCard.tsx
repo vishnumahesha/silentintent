@@ -62,34 +62,52 @@ function StatusIndicator({ status, isLogged }: { status: VendorStatus; isLogged:
   if (status === 'rejected') {
     return (
       <motion.div
-        initial={{ scale: 1 }}
-        animate={{ scale: [1, 1.015, 1] }}
-        transition={{ duration: 0.6, times: [0, 0.5, 1] }}
+        initial={{ scale: 0.98, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: 0.35, ease: 'easeOut' }}
+        style={{
+          padding: '16px 18px',
+          borderRadius: '10px',
+          backgroundColor: 'rgba(122,61,61,0.10)',
+          border: '1px solid rgba(122,61,61,0.45)',
+          boxShadow: 'inset 0 1px 0 0 rgba(255,255,255,0.03), 0 0 0 4px rgba(122,61,61,0.06)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '6px',
+        }}
       >
-        <p
+        <span
           style={{
             fontFamily: "'Space Grotesk', sans-serif",
-            fontSize: '28px',
+            fontSize: '34px',
             fontWeight: 700,
             color: 'var(--color-reject)',
             letterSpacing: '0.02em',
-            lineHeight: 1,
-            margin: 0,
+            lineHeight: 0.95,
           }}
         >
           REJECTED
-        </p>
-        <p
+        </span>
+        <span
           style={{
             fontFamily: "'IBM Plex Sans', sans-serif",
-            fontSize: '12px',
-            color: 'var(--color-text-tertiary)',
+            fontSize: '13px',
+            color: 'var(--color-text-secondary)',
             lineHeight: 1.5,
-            marginTop: '6px',
           }}
         >
-          Hidden reuse clause detected. Spend authorization denied.
-        </p>
+          Hidden reuse clause detected.
+        </span>
+        <span
+          style={{
+            fontFamily: "'IBM Plex Sans', sans-serif",
+            fontSize: '13px',
+            color: 'var(--color-text-secondary)',
+            lineHeight: 1.5,
+          }}
+        >
+          Treasury unchanged.
+        </span>
       </motion.div>
     );
   }
@@ -163,6 +181,34 @@ export default function VendorCard({
 
   const borderWidth = status === 'rejected' || status === 'approved' ? '2px' : '1px';
 
+  const badge = (() => {
+    if (status === 'rejected' && surfaceLabel === 'Surface-best offer') {
+      return {
+        text: 'Hidden risk detected',
+        color: 'var(--color-reject)',
+        bg: 'rgba(122,61,61,0.14)',
+        border: 'rgba(122,61,61,0.50)',
+      };
+    }
+    if (surfaceLabel === 'Surface-best offer') {
+      return {
+        text: 'Best surface offer',
+        color: 'var(--color-treasury-gold)',
+        bg: 'rgba(201,168,76,0.10)',
+        border: 'rgba(201,168,76,0.40)',
+      };
+    }
+    if (surfaceLabel === 'Compliant offer') {
+      return {
+        text: 'Compliant offer',
+        color: 'var(--color-success)',
+        bg: 'rgba(61,122,92,0.10)',
+        border: 'rgba(61,122,92,0.40)',
+      };
+    }
+    return null;
+  })();
+
   return (
     <div
       style={{
@@ -179,22 +225,29 @@ export default function VendorCard({
     >
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          {surfaceLabel && (
-            <span
+          {badge && (
+            <motion.span
+              key={badge.text}
+              initial={{ opacity: 0, y: -2 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.25 }}
               style={{
+                display: 'inline-block',
                 fontFamily: "'IBM Plex Mono', monospace",
-                fontSize: '10px',
-                color:
-                  surfaceLabel === 'Surface-best offer'
-                    ? 'var(--color-treasury-gold)'
-                    : 'var(--color-success)',
+                fontSize: '11px',
+                fontWeight: 600,
+                color: badge.color,
+                backgroundColor: badge.bg,
+                border: `1px solid ${badge.border}`,
+                padding: '4px 10px',
+                borderRadius: '999px',
                 letterSpacing: '0.14em',
                 textTransform: 'uppercase',
                 alignSelf: 'flex-start',
               }}
             >
-              {surfaceLabel}
-            </span>
+              {badge.text}
+            </motion.span>
           )}
           <span
             style={{
