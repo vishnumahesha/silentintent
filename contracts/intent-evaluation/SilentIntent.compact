@@ -1,0 +1,88 @@
+pragma language_version >= 0.14;
+import CompactStandardLibrary;
+
+// ── Private witnesses: buyer's hidden procurement policy ─────────────────────
+witness maxPriceCents(): Uint<64>;
+witness requiredCredentialHash(): Bytes<32>;
+witness forbiddenTermHash(): Bytes<32>;
+witness intentSalt(): Bytes<32>;
+
+// ── Private witnesses: vendor's offer (extracted by AI) ──────────────────────
+witness offerPriceCents(): Uint<64>;
+witness offerCredentialHashes(): Vector<4, Bytes<32>>;
+witness offerDetectedForbiddenHashes(): Vector<4, Bytes<32>>;
+witness offerSalt(): Bytes<32>;
+
+// ── Opaque witnesses: computed by TypeScript driver, disclosed as-is ─────────
+witness offerDealId(): Opaque<"string">;
+witness offerPriceBand(): Opaque<"string">;
+
+// ── Public ledger state (visible on-chain after proof) ───────────────────────
+export ledger dealId: Opaque<"string">;
+export ledger policyId: Opaque<"string">;
+export ledger settlementAuthorized: Boolean;
+export ledger priceBand: Opaque<"string">;
+export ledger intentCommitment: Bytes<32>;
+export ledger offerCommitment: Bytes<32>;
+
+// ── Circuit 1: Buyer registers hidden intent as an on-chain commitment ────────
+export circuit registerIntent(newPolicyId: Opaque<"string">): [] {
+  const buyerMaxPrice: Uint<64>  = maxPriceCents();
+  const buyerCredHash: Bytes<32> = requiredCredentialHash();
+  const buyerForbidHash: Bytes<32> = forbiddenTermHash();
+  const buyerSalt: Bytes<32>     = intentSalt();
+
+  const commitment: Bytes<32> = persistentHash<[Uint<64>, Bytes<32>, Bytes<32>, Bytes<32>]>(
+    [buyerMaxPrice, buyerCredHash, buyerForbidHash, buyerSalt]
+  );
+
+  policyId             = disclose(newPolicyId);
+  intentCommitment     = disclose(commitment);
+  settlementAuthorized = false;
+}
+
+// ── Circuit 2: Evaluate a vendor offer against the stored intent commitment ───
+export circuit evaluateOffer(newDealId: Opaque<"string">): [] {
+  const vendorPrice: Uint<64> = offerPriceCents();
+  const buyerMaxPrice: Uint<64> = maxPriceCents();
+  const buyerCredHash: Bytes<32> = requiredCredentialHash();
+  const buyerForbidHash: Bytes<32> = forbiddenTermHash();
+  const buyerSalt: Bytes<32> = intentSalt();
+
+  // Constraint 1: Price must not exceed buyer's hidden maximum
+  assert(vendorPrice <= buyerMaxPrice, "Offer price exceeds maximum allowed price");
+
+  // Constraint 2: Stored intent commitment must match hash of private witnesses
+  const computedIntent: Bytes<32> = persistentHash<[Uint<64>, Bytes<32>, Bytes<32>, Bytes<32>]>(
+    [buyerMaxPrice, buyerCredHash, buyerForbidHash, buyerSalt]
+  );
+  assert(intentCommitment == computedIntent, "Intent commitment mismatch");
+
+  // Constraint 3: Required credential must appear in the offer's credential list
+  const credHashes: Vector<4, Bytes<32>> = offerCredentialHashes();
+  const hasCredential: Boolean = (credHashes[0] == buyerCredHash)
+                              || (credHashes[1] == buyerCredHash)
+                              || (credHashes[2] == buyerCredHash)
+                              || (credHashes[3] == buyerCredHash);
+  assert(hasCredential, "Required credential not found in offer");
+
+  // Constraint 4: Forbidden term must NOT appear in detected forbidden hashes
+  const forbidHashes: Vector<4, Bytes<32>> = offerDetectedForbiddenHashes();
+  const hasForbidden: Boolean = (forbidHashes[0] == buyerForbidHash)
+                             || (forbidHashes[1] == buyerForbidHash)
+                             || (forbidHashes[2] == buyerForbidHash)
+                             || (forbidHashes[3] == buyerForbidHash);
+  assert(!hasForbidden, "Forbidden term detected in offer");
+
+  // ── Ledger writes: compute offer commitment and disclose public outputs ─────
+  const vendorSalt: Bytes<32> = offerSalt();
+  const offerComm: Bytes<32> = persistentHash<[Uint<64>, Vector<4, Bytes<32>>, Vector<4, Bytes<32>>, Bytes<32>]>(
+    [vendorPrice, credHashes, forbidHashes, vendorSalt]
+  );
+
+  const band: Opaque<"string"> = offerPriceBand();
+  dealId               = disclose(newDealId);
+  priceBand            = disclose(band);
+  offerCommitment      = disclose(offerComm);
+  settlementAuthorized = true;
+}
