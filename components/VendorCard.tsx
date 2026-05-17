@@ -115,35 +115,54 @@ function StatusIndicator({ status, isLogged }: { status: VendorStatus; isLogged:
   if (status === 'approved') {
     return (
       <motion.div
-        initial={{ scale: 1 }}
-        animate={{ scale: [1, 1.015, 1] }}
-        transition={{ duration: 0.6, times: [0, 0.5, 1] }}
+        initial={{ scale: 0.98, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: 0.35, ease: 'easeOut' }}
+        style={{
+          padding: '16px 18px',
+          borderRadius: '10px',
+          backgroundColor: 'rgba(61,122,92,0.10)',
+          border: '1px solid rgba(61,122,92,0.45)',
+          boxShadow: 'inset 0 1px 0 0 rgba(255,255,255,0.03), 0 0 0 4px rgba(61,122,92,0.06)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '6px',
+        }}
       >
-        <p
+        <span
           style={{
             fontFamily: "'Space Grotesk', sans-serif",
-            fontSize: '28px',
+            fontSize: '34px',
             fontWeight: 700,
             color: 'var(--color-success)',
             letterSpacing: '0.02em',
-            lineHeight: 1,
-            margin: 0,
+            lineHeight: 0.95,
           }}
         >
           AUTHORIZED
-        </p>
-        <p
+        </span>
+        <span
           style={{
             fontFamily: "'IBM Plex Sans', sans-serif",
-            fontSize: '12px',
-            color: 'var(--color-text-tertiary)',
+            fontSize: '13px',
+            color: 'var(--color-text-secondary)',
             lineHeight: 1.5,
-            marginTop: '6px',
           }}
         >
-          Policy satisfied. Treasury debit authorized.{' '}
-          {isLogged ? '' : 'Awaiting authorization click.'}
-        </p>
+          Policy satisfied.
+        </span>
+        <span
+          style={{
+            fontFamily: "'IBM Plex Sans', sans-serif",
+            fontSize: '13px',
+            color: 'var(--color-text-secondary)',
+            lineHeight: 1.5,
+          }}
+        >
+          {isLogged
+            ? 'Treasury debit approved: −$2,250.'
+            : 'Treasury debit ready: −$2,250 — click Authorize to confirm.'}
+        </span>
       </motion.div>
     );
   }
