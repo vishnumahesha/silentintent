@@ -181,8 +181,9 @@ export default function VendorCard({
             style={{
               fontFamily: "'IBM Plex Mono', monospace",
               color: 'var(--color-text-primary)',
-              fontSize: '16px',
+              fontSize: '20px',
               fontWeight: 500,
+              letterSpacing: '-0.01em',
             }}
           >
             {vendorName}
@@ -347,10 +348,10 @@ export default function VendorCard({
           disabled={!canAnalyze}
           style={{
             fontFamily: "'IBM Plex Mono', monospace",
-            fontSize: '12px',
+            fontSize: '13px',
             fontWeight: 500,
             letterSpacing: '0.04em',
-            padding: '10px 16px',
+            padding: '12px 16px',
             borderRadius: '8px',
             border: '1px solid var(--color-border-accent)',
             backgroundColor: canAnalyze
@@ -373,10 +374,10 @@ export default function VendorCard({
           disabled={!canAuthorize}
           style={{
             fontFamily: "'IBM Plex Mono', monospace",
-            fontSize: '12px',
+            fontSize: '13px',
             fontWeight: 500,
             letterSpacing: '0.04em',
-            padding: '10px 16px',
+            padding: '12px 16px',
             borderRadius: '8px',
             border: '1px solid',
             borderColor: canAuthorize

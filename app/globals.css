@@ -22,17 +22,17 @@
 }
 
 :root {
-  --font-size-hero: 40px;
-  --font-size-section: 22px;
-  --font-size-card-title: 18px;
-  --font-size-body: 14px;
+  --font-size-hero: 48px;
+  --font-size-section: 24px;
+  --font-size-card-title: 20px;
+  --font-size-body: 13px;
   --font-size-meta: 12px;
   --font-size-mono: 13px;
   --font-weight-hero: 700;
   --font-weight-section: 600;
   --font-weight-card: 500;
   --font-weight-body: 400;
-  --line-height-display: 1.1;
+  --line-height-display: 1.05;
   --line-height-body: 1.5;
   --line-height-meta: 1.4;
 }

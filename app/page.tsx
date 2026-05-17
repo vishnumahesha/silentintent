@@ -135,7 +135,7 @@ export default function Page() {
           display: 'flex',
           flexDirection: 'column',
           gap: '16px',
-          maxWidth: '1200px',
+          maxWidth: '1440px',
           width: '100%',
           margin: '0 auto',
           boxSizing: 'border-box',
@@ -159,11 +159,11 @@ export default function Page() {
           <p
             style={{
               fontFamily: "'IBM Plex Sans', sans-serif",
-              fontSize: '13px',
+              fontSize: '14px',
               color: 'var(--color-text-tertiary)',
               letterSpacing: '0.08em',
               textTransform: 'uppercase',
-              marginTop: '12px',
+              marginTop: '14px',
             }}
           >
             Private policy in. Public authorization out.

@@ -426,7 +426,7 @@ export default function PublicVerifier({
           style={{
             fontFamily: "'IBM Plex Mono', monospace",
             color: 'var(--color-text-primary)',
-            fontSize: '13px',
+            fontSize: '14px',
             fontWeight: 600,
             letterSpacing: '0.04em',
             textTransform: 'uppercase',
