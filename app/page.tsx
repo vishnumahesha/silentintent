@@ -18,7 +18,6 @@ import IntroSlides from '@/components/IntroSlides';
 import ProductMode from '@/components/ProductMode';
 import WhyNotPromptBox from '@/components/WhyNotPromptBox';
 import PublicReceipt from '@/components/PublicReceipt';
-import CompactCircuitPanel from '@/components/CompactCircuitPanel';
 
 const TREASURY_START = 1000000;
 const VENDOR_B_COST = 225000;
@@ -55,7 +54,7 @@ const INITIAL_VENDOR_STATE: VendorState = { status: 'idle', proof: null };
 type AppView = 'home' | 'intro' | 'demo';
 
 export default function Page() {
-  const [view, setView] = useState<AppView>('demo');
+  const [view, setView] = useState<AppView>('home');
 
   if (view === 'home') {
     return (
@@ -125,15 +124,19 @@ function DemoView({
     );
   }
 
-  return <GuidedDemoView onGoHome={onGoHome} onGoIntro={onGoIntro} />;
+  return <GuidedDemoView onGoHome={onGoHome} onGoIntro={onGoIntro} mode={mode} setMode={setMode} />;
 }
 
 function GuidedDemoView({
   onGoHome,
   onGoIntro,
+  mode,
+  setMode,
 }: {
   onGoHome: () => void;
   onGoIntro: () => void;
+  mode: DemoMode;
+  setMode: (next: DemoMode) => void;
 }) {
   const [vendorA, setVendorA] = useState<VendorState>(INITIAL_VENDOR_STATE);
   const [vendorB, setVendorB] = useState<VendorState>(INITIAL_VENDOR_STATE);
@@ -242,6 +245,7 @@ function GuidedDemoView({
       }}
     >
       <DemoNav onGoHome={onGoHome} onGoIntro={onGoIntro} />
+      <ModeToggle mode={mode} onChange={setMode} />
       <TreasuryHeader balanceCents={treasuryBalance} lastDebit={lastDebit} />
 
       <main
@@ -397,20 +401,11 @@ function GuidedDemoView({
           subtitle="visible to everyone"
         />
 
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
-            gap: '16px',
-          }}
-        >
-          <PublicReceipt
-            latestProof={latestProof}
-            isLatestAuthorized={isLatestAuthorized}
-            analyzing={isAnalyzing}
-          />
-          <CompactCircuitPanel />
-        </div>
+        <PublicReceipt
+          latestProof={latestProof}
+          isLatestAuthorized={isLatestAuthorized}
+          analyzing={isAnalyzing}
+        />
 
         <p
           style={{
@@ -423,7 +418,7 @@ function GuidedDemoView({
             textAlign: 'center',
           }}
         >
-          Demo note: UI uses deterministic proof execution for reliability. Compiled Compact artifacts are included in contracts/intent-evaluation/.
+          Hackathon prototype: cached AI extraction + deterministic proof model with Compact artifacts. No real payment movement.
         </p>
 
         <ImplementationStatusStrip />
