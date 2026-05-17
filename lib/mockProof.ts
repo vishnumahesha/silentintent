@@ -137,12 +137,17 @@ function dealIdFor(vendorId: VendorId, priceCents: number): string {
   return 'deal_' + demoHash(`deal:${vendorId}:${priceCents}`).slice(2, 12);
 }
 
-function authorizeOffer(
+export function authorizeOffer(
   policy: BuyerPolicyPrivate,
   offer: ExtractedOfferFacts,
   timestamp: string,
+  authorizationNonce?: string,
 ): AuthorizationProofResult {
-  const witness = buildAuthorizationWitness(policy, offer, nonceFor(offer.vendorId));
+  const witness = buildAuthorizationWitness(
+    policy,
+    offer,
+    authorizationNonce ?? nonceFor(offer.vendorId),
+  );
   const ev = evaluateConstraints(witness);
   const authorized =
     ev.pricePass && ev.categoryPass && ev.credentialPass && ev.forbiddenPass;

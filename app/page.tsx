@@ -16,6 +16,7 @@ import ImplementationStatusStrip from '@/components/ImplementationStatusStrip';
 import DemoStepBanner from '@/components/DemoStepBanner';
 import HomeScreen from '@/components/HomeScreen';
 import IntroSlides from '@/components/IntroSlides';
+import ProductMode from '@/components/ProductMode';
 
 const TREASURY_START = 1000000;
 const VENDOR_B_COST = 225000;
@@ -80,12 +81,61 @@ export default function Page() {
   );
 }
 
+type DemoMode = 'guided' | 'product';
+
 function DemoView({
   onGoHome,
   onGoIntro,
 }: {
   onGoHome: () => void;
   onGoIntro: () => void;
+}) {
+  const [mode, setMode] = useState<DemoMode>('guided');
+
+  if (mode === 'product') {
+    return (
+      <div
+        style={{
+          minHeight: '100vh',
+          backgroundColor: 'var(--color-bg)',
+          display: 'flex',
+          flexDirection: 'column',
+        }}
+      >
+        <DemoNav onGoHome={onGoHome} onGoIntro={onGoIntro} />
+        <ModeToggle mode={mode} onChange={setMode} />
+        <main
+          style={{
+            padding: '24px 24px 120px',
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '16px',
+            maxWidth: '1440px',
+            width: '100%',
+            margin: '0 auto',
+            boxSizing: 'border-box',
+          }}
+        >
+          <ProductMode />
+        </main>
+      </div>
+    );
+  }
+
+  return <GuidedDemoView onGoHome={onGoHome} onGoIntro={onGoIntro} mode={mode} setMode={setMode} />;
+}
+
+function GuidedDemoView({
+  onGoHome,
+  onGoIntro,
+  mode,
+  setMode,
+}: {
+  onGoHome: () => void;
+  onGoIntro: () => void;
+  mode: DemoMode;
+  setMode: (next: DemoMode) => void;
 }) {
   const [vendorA, setVendorA] = useState<VendorState>(INITIAL_VENDOR_STATE);
   const [vendorB, setVendorB] = useState<VendorState>(INITIAL_VENDOR_STATE);
@@ -171,6 +221,7 @@ function DemoView({
       }}
     >
       <DemoNav onGoHome={onGoHome} onGoIntro={onGoIntro} />
+      <ModeToggle mode={mode} onChange={setMode} />
       <TreasuryHeader balanceCents={treasuryBalance} lastDebit={lastDebit} />
 
       <main
@@ -391,6 +442,92 @@ function DemoNav({
       >
         Live demo
       </span>
+    </div>
+  );
+}
+
+function ModeToggle({
+  mode,
+  onChange,
+}: {
+  mode: DemoMode;
+  onChange: (next: DemoMode) => void;
+}) {
+  const options: { value: DemoMode; label: string; sub: string }[] = [
+    { value: 'guided', label: 'Guided demo', sub: 'scripted BrightReach / CleanList flow' },
+    { value: 'product', label: 'Try it yourself', sub: 'build a policy, paste an offer, run the proof' },
+  ];
+
+  return (
+    <div
+      style={{
+        padding: '16px 24px',
+        display: 'flex',
+        justifyContent: 'center',
+        backgroundColor: 'rgba(10,12,15,0.4)',
+        borderBottom: '1px solid var(--color-border)',
+      }}
+    >
+      <div
+        role="tablist"
+        aria-label="Demo mode"
+        style={{
+          display: 'inline-flex',
+          padding: '4px',
+          border: '1px solid var(--color-border-accent)',
+          borderRadius: '10px',
+          backgroundColor: 'var(--color-bg)',
+          gap: '4px',
+        }}
+      >
+        {options.map((opt) => {
+          const isActive = opt.value === mode;
+          return (
+            <button
+              key={opt.value}
+              type="button"
+              role="tab"
+              aria-selected={isActive}
+              onClick={() => onChange(opt.value)}
+              style={{
+                fontFamily: "'IBM Plex Mono', monospace",
+                fontSize: '12px',
+                letterSpacing: '0.12em',
+                textTransform: 'uppercase',
+                padding: '10px 18px',
+                borderRadius: '7px',
+                border: 'none',
+                cursor: isActive ? 'default' : 'pointer',
+                backgroundColor: isActive ? 'var(--color-surface-raised)' : 'transparent',
+                color: isActive ? 'var(--color-treasury-gold)' : 'var(--color-text-secondary)',
+                fontWeight: 600,
+                transition: 'background-color 0.15s, color 0.15s',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'flex-start',
+                gap: '2px',
+                minWidth: '210px',
+                textAlign: 'left',
+              }}
+              title={opt.sub}
+            >
+              <span>{opt.label}</span>
+              <span
+                style={{
+                  fontFamily: "'IBM Plex Sans', sans-serif",
+                  fontSize: '10px',
+                  letterSpacing: '0.04em',
+                  textTransform: 'none',
+                  fontWeight: 400,
+                  color: isActive ? 'var(--color-text-secondary)' : 'var(--color-text-tertiary)',
+                }}
+              >
+                {opt.sub}
+              </span>
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }

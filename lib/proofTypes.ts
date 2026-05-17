@@ -6,7 +6,12 @@
 // come from the deterministic mock proof in lib/mockProof.ts; swapping
 // in a real proof execution should not change any of these signatures.
 
-export type VendorId = 'brightreach' | 'cleanlist';
+// 'brightreach' | 'cleanlist' are the two known vendor IDs used by the
+// scripted guided demo. The `string & {}` arm widens the type to any
+// string while preserving editor autocomplete for the known IDs, so
+// the Try-it-yourself product mode can stamp arbitrary user-entered
+// vendor identifiers without needing a type cast.
+export type VendorId = 'brightreach' | 'cleanlist' | (string & {});
 
 /**
  * The buyer's private procurement policy. Never sent to a vendor and
