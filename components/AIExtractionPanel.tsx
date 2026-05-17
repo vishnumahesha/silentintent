@@ -114,6 +114,113 @@ function TruthBadge() {
   );
 }
 
+function PipelinePreview() {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <EyeIcon size={16} weight="regular" color="var(--color-text-tertiary)" />
+        <span
+          style={{
+            fontFamily: "'IBM Plex Sans', sans-serif",
+            fontSize: '12px',
+            color: 'var(--color-text-secondary)',
+            fontWeight: 500,
+            letterSpacing: '0.02em',
+          }}
+        >
+          Extraction pipeline
+        </span>
+        <span
+          style={{
+            width: '6px',
+            height: '6px',
+            borderRadius: '9999px',
+            backgroundColor: 'var(--color-text-tertiary)',
+            display: 'inline-block',
+            animation: 'pulse-dot 1.8s ease-in-out infinite',
+            flexShrink: 0,
+          }}
+        />
+        <span
+          style={{
+            fontFamily: "'IBM Plex Mono', monospace",
+            fontSize: '10px',
+            color: 'var(--color-text-tertiary)',
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+            marginLeft: 'auto',
+          }}
+        >
+          Awaiting offer
+        </span>
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+        {PIPELINE_STEPS.map((step, i) => (
+          <div key={step.label} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                padding: '7px 12px',
+                backgroundColor: 'rgba(17,20,24,0.55)',
+                border: '1px dashed var(--color-border)',
+                borderRadius: '6px',
+              }}
+            >
+              <span
+                style={{
+                  fontFamily: "'IBM Plex Sans', sans-serif",
+                  fontSize: '11px',
+                  color: 'var(--color-text-tertiary)',
+                  letterSpacing: '0.04em',
+                  minWidth: '180px',
+                  flexShrink: 0,
+                }}
+              >
+                {step.label}
+              </span>
+              <span
+                style={{
+                  fontFamily: "'IBM Plex Mono', monospace",
+                  fontSize: '11px',
+                  color: 'var(--color-text-tertiary)',
+                  opacity: 0.65,
+                  letterSpacing: '0.01em',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                }}
+              >
+                {step.sample}
+              </span>
+            </div>
+            {i < PIPELINE_STEPS.length - 1 && (
+              <div style={{ display: 'flex', justifyContent: 'flex-start', paddingLeft: '14px' }}>
+                <ArrowDownIcon size={10} weight="regular" color="var(--color-border-accent)" />
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      <span
+        style={{
+          fontFamily: "'IBM Plex Sans', sans-serif",
+          fontSize: '11px',
+          color: 'var(--color-text-tertiary)',
+          fontStyle: 'italic',
+          lineHeight: 1.5,
+          paddingTop: '4px',
+        }}
+      >
+        Pick a vendor below — the proposal text flows through this pipeline into committed proof inputs.
+      </span>
+    </div>
+  );
+}
+
 function ExtractedFacts({ activeVendor }: { activeVendor: ActiveVendor }) {
   const isAnalyzing = activeVendor.status === 'analyzing';
   const isRejected = activeVendor.status === 'rejected';
